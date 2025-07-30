@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabaseBrowser } from '../lib/supabase'
+import { supabaseBrowser } from '../utils/supabase/client'
 
 interface AuthContext {
   session: any

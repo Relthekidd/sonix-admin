@@ -1,7 +1,7 @@
 'use server'
 
 import slugify from 'slugify'
-import { supabaseAdmin } from '../../lib/supabase'
+import { supabaseAdmin } from '../../utils/supabase/client'
 
 export async function uploadSingleAction(formData: FormData) {
   const supabase = supabaseAdmin()

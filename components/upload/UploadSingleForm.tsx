@@ -1,6 +1,6 @@
 import { useState, useEffect, useTransition } from 'react'
 import { uploadSingleAction } from '../../app/actions/upload'
-import { supabaseBrowser } from '../../lib/supabase'
+import { supabaseBrowser } from '../../utils/supabase/client'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 
