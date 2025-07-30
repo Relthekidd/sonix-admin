@@ -45,7 +45,7 @@ const otherItems = [
 ];
 
 export function Dashboard() {
-  const { user, loading, isAdmin, signOut } = useAuth();
+  const { session, loading, isAdmin, signOut } = useAuth();
   const [activePage, setActivePage] = useState("Dashboard");
 
   // Show loading spinner while checking auth
@@ -61,7 +61,7 @@ export function Dashboard() {
   }
 
   // Show login page if not authenticated or not admin
-  if (!user || !isAdmin) {
+  if (!session || !isAdmin) {
     return <LoginPage />;
   }
 
@@ -144,15 +144,15 @@ export function Dashboard() {
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-sonix-purple rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-semibold">
-                {user.email?.charAt(0).toUpperCase()}
+                {session.user?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sonix-primary truncate">
-                {user.user_metadata?.name || 'Admin'}
+                {session.user?.user_metadata?.name || 'Admin'}
               </p>
               <p className="text-xs text-sonix-secondary truncate">
-                {user.email}
+                {session.user?.email}
               </p>
             </div>
           </div>

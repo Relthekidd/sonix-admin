@@ -1,228 +1,100 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-  supabase,
-  getCurrentUser,
-  signIn as supabaseSignIn,
-  signOut as supabaseSignOut,
-  type User,
-} from '../supabase/client';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
+import { supabaseBrowser } from '../supabase/client';
 
-interface AuthContextType {
-  user: User | null;
+interface AuthContextValue {
+  session: Session | null;
   loading: boolean;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  isAdmin: boolean;
-  error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
 };
 
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
-
-// Environment-based fallback credentials (for development)
-const FALLBACK_EMAIL = 'admin@sonix.com';
-const FALLBACK_PASSWORD = 'admin123';
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const supabase = supabaseBrowser();
+  const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // check admin flag from profiles table
+  const fetchAdminStatus = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    if (error) return false;
+    return data?.role === 'admin';
+  };
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await checkAdminStatus(session.user.id);
+    let mounted = true;
+
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setSession(data.session);
+      if (data.session?.user) {
+        setIsAdmin(await fetchAdminStatus(data.session.user.id));
       }
       setLoading(false);
     };
 
-    getSession();
+    init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await checkAdminStatus(session.user.id);
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_evt, sess) => {
+      if (!mounted) return;
+      setSession(sess);
+      if (sess?.user) {
+        setIsAdmin(await fetchAdminStatus(sess.user.id));
       } else {
         setIsAdmin(false);
       }
       setLoading(false);
     });
 
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
-  const checkAdminStatus = async (userId: string): Promise<boolean> => {
-    try {
-      // First check if profiles table exists and has data
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-      
-      if (profileError) {
-        console.log('Profile check failed, assuming admin for development:', profileError.message);
-        // For development, assume admin access if profile lookup fails
-        setIsAdmin(true);
-        return true;
-      }
-
-      const isAdmin = profile?.role === 'admin';
-      setIsAdmin(isAdmin);
-      return isAdmin;
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      // For development, assume admin access on error
-      setIsAdmin(true);
-      return true;
-    }
-  };
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      setError(null);
-      setLoading(true);
-
-      // First try Supabase authentication
-      try {
-        const signedInUser = await supabaseSignIn(email, password);
-        if (signedInUser) {
-          setUser(signedInUser);
-          const admin = await checkAdminStatus(signedInUser.id);
-
-          localStorage.setItem('sonix_admin_session', JSON.stringify({
-            user: signedInUser,
-            isAdmin: admin,
-            timestamp: Date.now(),
-          }));
-
-          return;
-        }
-      } catch (supabaseError: any) {
-        console.log('Supabase auth failed, trying fallback:', supabaseError.message);
-        
-        // Fallback to hardcoded credentials for development
-        if (email === FALLBACK_EMAIL && password === FALLBACK_PASSWORD) {
-          // Create a mock user session for development
-          const mockUser = {
-            id: 'dev-admin-user',
-            email: FALLBACK_EMAIL,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            app_metadata: {},
-            user_metadata: {},
-            aud: 'authenticated',
-            role: 'authenticated'
-          } as User;
-          
-          setUser(mockUser);
-          setIsAdmin(true);
-          
-          // Store session in localStorage for persistence
-          localStorage.setItem('sonix_admin_session', JSON.stringify({
-            user: mockUser,
-            isAdmin: true,
-            timestamp: Date.now()
-          }));
-          
-          console.log('Development login successful');
-          return;
-        }
-        
-        // If neither Supabase nor fallback worked, throw the original error
-        throw new Error('Invalid credentials. Please check your email and password.');
-      }
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      setError(error.message || 'Authentication failed');
-      throw error;
-    } finally {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
       setLoading(false);
+      throw error;
     }
+    setSession(data.session);
+    if (data.session?.user) {
+      setIsAdmin(await fetchAdminStatus(data.session.user.id));
+    }
+    setLoading(false);
   };
 
   const signOut = async () => {
-    try {
-      setError(null);
-      setLoading(true);
-      
-      // Clear localStorage session
-      localStorage.removeItem('sonix_admin_session');
-      
-      // Try Supabase sign out
-      await supabaseSignOut();
-      
-      setUser(null);
-      setIsAdmin(false);
-
-      console.log('Sign out successful');
-    } catch (error: any) {
-      console.error('Sign out error:', error);
-      // Even if Supabase signout fails, clear local state
-      setUser(null);
-      setIsAdmin(false);
-      setError('Sign out completed with warnings');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Check for stored session on mount
-  useEffect(() => {
-    const checkStoredSession = () => {
-      try {
-        const stored = localStorage.getItem('sonix_admin_session');
-        if (stored) {
-          const session = JSON.parse(stored);
-          const isRecent = Date.now() - session.timestamp < 24 * 60 * 60 * 1000; // 24 hours
-          
-          if (isRecent && session.user && session.isAdmin) {
-            setUser(session.user);
-            setIsAdmin(session.isAdmin);
-            console.log('Restored session from localStorage');
-          } else {
-            localStorage.removeItem('sonix_admin_session');
-          }
-        }
-      } catch (error) {
-        console.error('Error checking stored session:', error);
-        localStorage.removeItem('sonix_admin_session');
-      }
-    };
-
-    // Only check stored session if no Supabase session exists
-    if (!user && !loading) {
-      checkStoredSession();
-    }
-  }, [user, loading]);
-
-  const value = {
-    user,
-    loading,
-    signIn,
-    signOut,
-    isAdmin,
-    error
+    setLoading(true);
+    await supabase.auth.signOut();
+    setSession(null);
+    setIsAdmin(false);
+    setLoading(false);
+    navigate('/login', { replace: true });
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ session, loading, isAdmin, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
+}
