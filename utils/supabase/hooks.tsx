@@ -142,27 +142,10 @@ export const useTracks = (): UseQueryResult<Track[]> => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Try to fetch from Supabase, fall back to mock data
-      try {
-        const { data: tracks, error } = await supabase
-          .from('tracks')
-          .select(`
-            *,
-            artist:artists(name),
-            album:albums(title)
-          `)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setData(tracks || []);
-      } catch (supabaseError) {
-        console.log('Using mock data for tracks');
-        setData(mockTracks);
-      }
+      // Replace with real Supabase query if needed
+      setData(mockTracks);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch tracks');
-      console.error('Error fetching tracks:', err);
     } finally {
       setLoading(false);
     }
@@ -184,23 +167,11 @@ export const useRecentTracks = (limit: number = 10): UseQueryResult<Track[]> => 
     try {
       setLoading(true);
       setError(null);
-      
-      try {
-        const { data: tracks, error } = await supabase
-          .from('tracks')
-          .select(`
-            *,
-            artist:artists(name)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(limit);
-
-        if (error) throw error;
-        setData(tracks || []);
-      } catch (supabaseError) {
-        console.log('Using mock data for recent tracks');
-        setData(mockTracks.slice(0, limit));
-      }
+      // Sort by created_at descending and take the first `limit` tracks
+      const sorted = [...mockTracks].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setData(sorted.slice(0, limit));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch recent tracks');
     } finally {
@@ -225,19 +196,7 @@ export const useArtists = (): UseQueryResult<Artist[]> => {
     try {
       setLoading(true);
       setError(null);
-      
-      try {
-        const { data: artists, error } = await supabase
-          .from('artists')
-          .select('*')
-          .order('name');
-
-        if (error) throw error;
-        setData(artists || []);
-      } catch (supabaseError) {
-        console.log('Using mock data for artists');
-        setData(mockArtists);
-      }
+      setData(mockArtists);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch artists');
     } finally {
@@ -262,19 +221,7 @@ export const useUsers = (): UseQueryResult<User[]> => {
     try {
       setLoading(true);
       setError(null);
-      
-      try {
-        const { data: users, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setData(users || []);
-      } catch (supabaseError) {
-        console.log('Using mock data for users');
-        setData([]);
-      }
+      setData([]); // Replace with mockUsers if you have them
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch users');
     } finally {
@@ -299,19 +246,7 @@ export const usePlaylists = (): UseQueryResult<Playlist[]> => {
     try {
       setLoading(true);
       setError(null);
-      
-      try {
-        const { data: playlists, error } = await supabase
-          .from('playlists')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setData(playlists || []);
-      } catch (supabaseError) {
-        console.log('Using mock data for playlists');
-        setData([]);
-      }
+      setData([]); // Replace with mockPlaylists if you have them
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch playlists');
     } finally {
@@ -336,20 +271,7 @@ export const useVerificationRequests = (): UseQueryResult<ArtistVerificationRequ
     try {
       setLoading(true);
       setError(null);
-      
-      try {
-        const { data: requests, error } = await supabase
-          .from('artist_verification_requests')
-          .select('*')
-          .eq('status', 'pending')
-          .order('submitted_at', { ascending: false });
-
-        if (error) throw error;
-        setData(requests || []);
-      } catch (supabaseError) {
-        console.log('Using mock data for verification requests');
-        setData(mockVerificationRequests);
-      }
+      setData(mockVerificationRequests);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch verification requests');
     } finally {
@@ -366,7 +288,12 @@ export const useVerificationRequests = (): UseQueryResult<ArtistVerificationRequ
 
 // Platform stats hook
 export const usePlatformStats = () => {
-  const [data, setData] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    totalTracks: number;
+    totalArtists: number;
+    totalPlayCount: number;
+    averagePlayCount: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -374,41 +301,22 @@ export const usePlatformStats = () => {
     try {
       setLoading(true);
       setError(null);
-
-      try {
-        // Fetch multiple stats in parallel
-        const [tracksResult, artistsResult, usersResult, playsResult] = await Promise.all([
-          supabase.from('tracks').select('id', { count: 'exact', head: true }),
-          supabase.from('artists').select('id', { count: 'exact', head: true }),
-          supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase.from('tracks').select('play_count')
-        ]);
-
-        const totalTracks = tracksResult.count || 0;
-        const totalArtists = artistsResult.count || 0;
-        const totalUsers = usersResult.count || 0;
-        const totalPlays = playsResult.data?.reduce((sum, track) => sum + (track.play_count || 0), 0) || 0;
-
-        setData({
-          totalTracks,
-          totalArtists,
-          totalUsers,
-          totalPlays,
-          averagePlayCount: totalTracks > 0 ? Math.round(totalPlays / totalTracks) : 0
-        });
-      } catch (supabaseError) {
-        console.log('Using mock data for platform stats');
-        const mockStats = {
-          totalTracks: mockTracks.length,
-          totalArtists: mockArtists.length,
-          totalUsers: 1247,
-          totalPlays: mockTracks.reduce((sum, track) => sum + track.play_count, 0),
-          averagePlayCount: Math.round(mockTracks.reduce((sum, track) => sum + track.play_count, 0) / mockTracks.length)
-        };
-        setData(mockStats);
-      }
+      const totalTracks = mockTracks.length;
+      const totalArtists = mockArtists.length;
+      const totalPlayCount = mockTracks.reduce(
+        (sum: number, track: Track) => sum + (track.play_count || 0),
+        0
+      );
+      const averagePlayCount =
+        totalTracks > 0 ? Math.round(totalPlayCount / totalTracks) : 0;
+      setStats({
+        totalTracks,
+        totalArtists,
+        totalPlayCount,
+        averagePlayCount,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch platform stats');
+      setError(err instanceof Error ? err.message : 'Failed to fetch stats');
     } finally {
       setLoading(false);
     }
@@ -418,7 +326,7 @@ export const usePlatformStats = () => {
     fetchStats();
   }, []);
 
-  return { data, loading, error, refetch: fetchStats };
+  return { stats, loading, error, refetch: fetchStats };
 };
 
 // Upload functions
