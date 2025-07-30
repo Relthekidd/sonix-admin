@@ -1,4 +1,14 @@
-import { createClient, User } from '@supabase/supabase-js'
+/// <reference types="vite/client" />
+import { createClient, type User } from '@supabase/supabase-js'
+
+export type { User }
+
+// Basic entity type placeholders for hooks
+export type Track = any
+export type Album = any
+export type Artist = any
+export type Playlist = any
+export type ArtistVerificationRequest = any
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
@@ -13,7 +23,7 @@ export const getCurrentUser = async () => {
   return data.user
 }
 
-export const signIn = async (email: string, password: string) => {
+export const signIn = async (email: string, password: string): Promise<User | null> => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
   return data.user

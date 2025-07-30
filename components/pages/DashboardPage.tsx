@@ -48,7 +48,10 @@ interface DashboardPageProps {
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const { data: recentTracks, loading: tracksLoading } = useRecentTracks(4);
-  const { data: platformStats, loading: statsLoading } = usePlatformStats();
+  const { stats: platformStats, loading: statsLoading } = usePlatformStats() as {
+    stats: any;
+    loading: boolean;
+  };
   const { data: verificationRequests, loading: requestsLoading } = useVerificationRequests();
 
   const renderLoadingCard = (title: string) => (

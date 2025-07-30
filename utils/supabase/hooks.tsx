@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
-import { supabase, Track, Album, Artist, User, Playlist, ArtistVerificationRequest } from './client';
+import {
+  supabase,
+  type Track,
+  type Album,
+  type Artist,
+  type User,
+  type Playlist,
+  type ArtistVerificationRequest,
+} from './client';
 
 // Generic hook for loading states
 interface UseQueryResult<T> {
