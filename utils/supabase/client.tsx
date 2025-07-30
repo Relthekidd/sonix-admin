@@ -1,3 +1,6 @@
+import { createClient } from '@supabase/supabase-js';
+import { projectId, publicAnonKey } from './info';
+
 // For now, let's create mock implementations to avoid import issues
 // This will be replaced with real Supabase integration once the environment is configured
 
@@ -114,111 +117,10 @@ const mockUser = {
 };
 
 // Mock Supabase client for development
-export const supabase = {
-  auth: {
-    getUser: async () => {
-      // Mock successful auth for development
-      return { data: { user: mockUser }, error: null };
-    },
-    getSession: async () => {
-      // Mock session for development
-      return {
-        data: {
-          session: {
-            user: mockUser,
-            access_token: 'mock-token',
-            expires_at: Date.now() + (60 * 60 * 1000) // 1 hour from now
-          }
-        },
-        error: null
-      };
-    },
-    signInWithPassword: async (credentials: { email: string; password: string }) => {
-      // Mock sign in - check demo credentials
-      if (credentials.email === 'admin@sonix.com' && credentials.password === 'admin123') {
-        return {
-          data: {
-            user: mockUser,
-            session: {
-              user: mockUser,
-              access_token: 'mock-token',
-              expires_at: Date.now() + (60 * 60 * 1000)
-            }
-          },
-          error: null
-        };
-      } else {
-        return {
-          data: { user: null, session: null },
-          error: { message: 'Invalid login credentials' }
-        };
-      }
-    },
-    signOut: async () => {
-      return { error: null };
-    },
-    onAuthStateChange: (callback: (event: string, session: any) => void) => {
-      // Mock auth state change
-      setTimeout(() => {
-        callback('SIGNED_IN', {
-          user: mockUser,
-          access_token: 'mock-token'
-        });
-      }, 100);
-      
-      return {
-        data: {
-          subscription: {
-            unsubscribe: () => {}
-          }
-        }
-      };
-    }
-  },
-  from: (table: string) => ({
-    select: (columns?: string) => ({
-      eq: (column: string, value: any) => ({
-        single: async () => ({ data: { role: 'admin' }, error: null }),
-        order: (column: string, options?: any) => ({
-          limit: (count: number) => ({ data: [], error: null })
-        })
-      }),
-      order: (column: string, options?: any) => ({ data: [], error: null }),
-      limit: (count: number) => ({ data: [], error: null }),
-      head: true,
-      count: 'exact' as const
-    }),
-    insert: (data: any) => ({
-      select: () => ({
-        single: async () => ({ data: { id: Date.now().toString(), ...data }, error: null })
-      })
-    }),
-    update: (data: any) => ({
-      eq: (column: string, value: any) => ({
-        select: () => ({
-          single: async () => ({ data: { id: value, ...data }, error: null })
-        })
-      })
-    })
-  }),
-  storage: {
-    from: (bucket: string) => ({
-      upload: async (path: string, file: File) => ({
-        data: { path: `mock/${path}` },
-        error: null
-      }),
-      getPublicUrl: (path: string) => ({
-        data: { publicUrl: `https://mock-storage.com/${path}` }
-      }),
-      createSignedUrl: async (path: string, expiresIn: number) => ({
-        data: { signedUrl: `https://mock-storage.com/${path}?signed=true` },
-        error: null
-      })
-    }),
-    listBuckets: async () => ({ data: [], error: null }),
-    createBucket: async (name: string, options?: any) => ({ error: null })
-  }
-};
+export const supabase = createClient(
+  `https://${projectId}.supabase.co`,
+  publicAnonKey
+);
 
 // Auth helper functions
 export const getCurrentUser = async () => {
