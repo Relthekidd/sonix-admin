@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const checkAdminStatus = async (userId: string) => {
+  const checkAdminStatus = async (userId: string): Promise<boolean> => {
     try {
       // First check if profiles table exists and has data
       const { data: profile, error: profileError } = await supabase
@@ -114,14 +114,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Profile check failed, assuming admin for development:', profileError.message);
         // For development, assume admin access if profile lookup fails
         setIsAdmin(true);
-        return;
+        return true;
       }
-      
-      setIsAdmin(profile?.role === 'admin');
+
+      const isAdmin = profile?.role === 'admin';
+      setIsAdmin(isAdmin);
+      return isAdmin;
     } catch (error) {
       console.error('Error checking admin status:', error);
       // For development, assume admin access on error
       setIsAdmin(true);
+      return true;
     }
   };
 
@@ -134,7 +137,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const signedInUser = await supabaseSignIn(email, password);
         if (signedInUser) {
-          await checkAdminStatus(signedInUser.id);
+          setUser(signedInUser);
+          const admin = await checkAdminStatus(signedInUser.id);
+
+          localStorage.setItem('sonix_admin_session', JSON.stringify({
+            user: signedInUser,
+            isAdmin: admin,
+            timestamp: Date.now(),
+          }));
+
           return;
         }
       } catch (supabaseError: any) {
