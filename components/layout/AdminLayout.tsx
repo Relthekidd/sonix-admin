@@ -30,7 +30,7 @@ const navigationItems = [
   { icon: CheckCircle, label: "Verify Artists", path: "/verify-artists", color: "text-green-400" },
 ];
 
-export function EnhancedAdminLayout() {
+export function AdminLayout() {
   const { session, signOut } = useAuth();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
