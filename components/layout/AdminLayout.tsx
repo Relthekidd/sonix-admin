@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import { Separator } from "../ui/separator";
 import { useAuth } from "../../utils/auth/AuthContext";
@@ -12,6 +12,7 @@ import {
   CheckCircle,
   TrendingUp,
   LogIn,
+  Menu,
 } from "lucide-react";
 
 const mainNavItems = [
@@ -34,6 +35,19 @@ const analyticsItems = [
 export function AdminLayout() {
   const { session, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      setCollapsed(true);
+    }
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const renderNavItem = (
     item: { icon: any; label: string; path?: string },
@@ -70,8 +84,14 @@ export function AdminLayout() {
 
   return (
     <div className="flex h-screen bg-sonix-black" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="lg:hidden absolute top-4 left-4 p-2 rounded-lg bg-sonix-card sonix-shadow"
+      >
+        <Menu className="w-5 h-5 text-sonix-primary" />
+      </button>
       <div
-        className={`${collapsed ? 'w-20' : 'w-72'} bg-sonix-black border-r border-sonix flex flex-col transition-all duration-300`}
+        className={`${collapsed ? 'w-20' : 'w-72'} sonix-sidebar border-r border-sonix flex flex-col transition-all duration-300 ${!collapsed ? 'fixed z-40 inset-y-0 left-0 lg:relative' : ''}`}
       >
         <div className="p-6 border-b border-sonix flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -144,6 +164,13 @@ export function AdminLayout() {
             {renderNavItem({ icon: LogIn, label: 'Logout' })}
           </div>
         </nav>
+        <div className="p-6 border-t border-sonix">
+          <div className="bg-sonix-card rounded-xl p-4 text-center border border-sonix">
+            <h4 className="text-sm font-bold text-sonix-primary mb-2">Upgrade Storage</h4>
+            <p className="text-xs text-sonix-secondary mb-3">Get unlimited music uploads</p>
+            <button className="sonix-button-primary text-xs py-2 px-4 w-full">Upgrade Now</button>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col overflow-auto">
