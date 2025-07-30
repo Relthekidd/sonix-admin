@@ -26,8 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // check admin flag from profiles table
-  const fetchAdminStatus = async (userId: string) => {
+  // Check if the given user has an admin role
+  const fetchAdminStatus = async (userId: string): Promise<boolean> => {
     const { data, error } = await supabase
       .from('users')
       .select('role')
@@ -36,10 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error('Error fetching user role:', error);
-      return null;
+      return false;
     }
 
-    return data?.role as string | null;
+    return data?.role === 'admin';
   };
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
 
-    initAuth();
+    init();
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_evt, sess) => {
       if (!mounted) return;
