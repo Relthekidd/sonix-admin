@@ -87,7 +87,7 @@ const uploads = [
 
 const statusOptions = ["All", "Published", "Processing", "Pending", "Failed"];
 
-export function UploadsPage() {
+export function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
