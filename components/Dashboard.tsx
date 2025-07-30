@@ -44,6 +44,11 @@ const otherItems = [
   { icon: LogIn, label: "Logout" },
 ];
 
+// Define the prop interface for pages that need navigation
+interface NavigationProps {
+  onNavigate?: (page: string) => void;
+}
+
 export function Dashboard() {
   const { session, loading, isAdmin, signOut } = useAuth();
   const [activePage, setActivePage] = useState("Dashboard");
@@ -101,6 +106,7 @@ export function Dashboard() {
   const renderContent = () => {
     switch (activePage) {
       case "Dashboard":
+        // Pass onNavigate only if DashboardPage accepts it
         return <DashboardPage onNavigate={setActivePage} />;
       case "Upload":
         return <UploadPage />;
@@ -115,7 +121,7 @@ export function Dashboard() {
       case "Verify Artists":
         return <VerifyArtistsPage />;
       case "Analytics":
-        return <AnalyticsPage />;
+        return <AnalyticsPage onNavigate={setActivePage} />;
       default:
         return <DashboardPage onNavigate={setActivePage} />;
     }
@@ -123,9 +129,9 @@ export function Dashboard() {
 
   return (
     <div className="flex h-screen bg-sonix-black" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {/* Sidebar */}
+      {/* Enhanced Sidebar */}
       <div className="w-60 sonix-sidebar flex flex-col">
-        {/* Logo */}
+        {/* Logo Section with Enhanced Styling */}
         <div className="p-8 border-b border-sonix">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-600 via-purple-500 to-violet-600 rounded-2xl flex items-center justify-center sonix-glow relative overflow-hidden">
@@ -139,10 +145,10 @@ export function Dashboard() {
           </div>
         </div>
         
-        {/* User Info */}
+        {/* Enhanced User Info */}
         <div className="p-6 border-b border-sonix">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-sonix-purple rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center ring-2 ring-purple-500/30">
               <span className="text-white text-sm font-semibold">
                 {session.user?.email?.charAt(0).toUpperCase()}
               </span>
@@ -154,14 +160,21 @@ export function Dashboard() {
               <p className="text-xs text-sonix-secondary truncate">
                 {session.user?.email}
               </p>
+              <div className="flex items-center mt-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-400 ml-1">Online</span>
+              </div>
             </div>
           </div>
         </div>
         
-        {/* Navigation */}
+        {/* Enhanced Navigation */}
         <nav className="flex-1 p-6 space-y-8 overflow-y-auto">
           {/* Main Navigation */}
           <div className="space-y-2">
+            <div className="px-4 mb-4">
+              <h3 className="text-xs font-bold text-sonix-secondary uppercase tracking-widest">Main</h3>
+            </div>
             {mainNavItems.map((item) => renderNavItem(item, activePage === item.label))}
           </div>
 
@@ -202,10 +215,13 @@ export function Dashboard() {
           </div>
         </nav>
 
-        {/* Bottom CTA */}
+        {/* Enhanced Bottom CTA */}
         <div className="p-6 border-t border-sonix">
-          <div className="bg-sonix-card rounded-xl p-4 text-center border border-sonix">
-            <h4 className="text-sm font-bold text-sonix-primary mb-2">Upgrade Storage</h4>
+          <div className="bg-gradient-to-br from-purple-900/50 to-purple-800/50 rounded-xl p-4 text-center border border-purple-500/30 backdrop-blur-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <h4 className="text-sm font-bold text-sonix-primary mb-1">Upgrade Storage</h4>
             <p className="text-xs text-sonix-secondary mb-3">Get unlimited music uploads</p>
             <button className="sonix-button-primary text-xs py-2 px-4 w-full">
               Upgrade Now
