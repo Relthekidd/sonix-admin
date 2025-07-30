@@ -14,7 +14,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { session, loading, isAdmin } = useAuth();
   const location = useLocation();
-  console.log('ProtectedRoute state', { loading, session, isAdmin });
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -31,16 +30,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Redirect to login if user is not authenticated
-  if (!loading && !session) {
+  if (!session) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Check admin privileges if required
-  if (!loading && requireAdmin && !isAdmin) {
-    return <Navigate to="/login" replace />;
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
-  // Render protected content
   return <>{children}</>;
 };
