@@ -31,7 +31,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Show error state if there's an authentication error
-  if (error && !user) {
+  if (!loading && error && !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
@@ -52,12 +52,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Redirect to login if user is not authenticated
-  if (!user) {
+  if (!loading && !user) {
     return <Navigate to="/login" replace />;
   }
 
   // Check admin privileges if required
-  if (requireAdmin && !isAdmin) {
+  if (!loading && requireAdmin && !isAdmin) {
     return <Navigate to="/login" replace />;
   }
 

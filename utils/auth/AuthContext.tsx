@@ -46,6 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const getInitialSession = async () => {
       try {
         setError(null);
+        setLoading(true);
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -194,6 +195,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     try {
       setError(null);
+      setLoading(true);
       
       // Clear localStorage session
       localStorage.removeItem('sonix_admin_session');
@@ -203,7 +205,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       setUser(null);
       setIsAdmin(false);
-      
+
       console.log('Sign out successful');
     } catch (error: any) {
       console.error('Sign out error:', error);
@@ -211,6 +213,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsAdmin(false);
       setError('Sign out completed with warnings');
+    } finally {
+      setLoading(false);
     }
   };
 
