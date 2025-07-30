@@ -36,8 +36,19 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+const container = document.getElementById('root') as HTMLElement;
+const existingRoot = (container as any)._reactRoot as ReactDOM.Root | undefined;
+const root = existingRoot ?? ReactDOM.createRoot(container);
+if (!existingRoot) {
+  (container as any)._reactRoot = root;
+}
+
+root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
+
+if (import.meta.hot) {
+  import.meta.hot.accept();
+}

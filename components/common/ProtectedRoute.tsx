@@ -8,11 +8,12 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requireAdmin = true 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requireAdmin = true
 }) => {
   const { user, loading, isAdmin, error } = useAuth();
+  console.log('ProtectedRoute state', { user, loading, isAdmin, error });
 
   // Show loading spinner while checking authentication
   if (loading) {
