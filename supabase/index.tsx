@@ -1,8 +1,7 @@
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import { logger } from "hono/logger";
-import { serve } from "@hono/node-server";
-import * as kv from "./functions/server/kv_store";
+import { Hono } from "npm:hono";
+import { cors } from "npm:hono/cors";
+import { logger } from "npm:hono/logger";
+import * as kv from "./kv_store.tsx";
 
 const app = new Hono();
 
@@ -275,4 +274,4 @@ app.get("/make-server-5830ef41/playlists", requireAdmin, async (c) => {
   }
 });
 
-serve({ fetch: app.fetch, port: 3000 });
+Deno.serve(app.fetch);
