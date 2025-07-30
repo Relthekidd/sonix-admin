@@ -21,6 +21,7 @@ import { AdminLayout } from '../components/layout/AdminLayout'
 import { LoginPage } from '../components/pages/LoginPage'
 import { UnauthorizedPage } from '../components/pages/UnauthorizedPage'
 import '../styles/globals.css'
+import '../styles/glassmorphism.css'
 
 function App() {
   return (
