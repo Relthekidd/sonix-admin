@@ -310,3 +310,6 @@ html {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
   }
 }
+/* Basic form field layout */
+.sonix-form-field { @apply flex flex-col gap-1; }
+
