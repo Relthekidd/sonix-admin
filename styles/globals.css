@@ -657,3 +657,6 @@ a:hover {
 .mb-4  { margin-bottom: 1rem; }
 .p-4   { padding: 1rem; }
 .p-6   { padding: 1.5rem; }
+
+/* Fade-in animation */
+.fade-in{opacity:0;animation:fadeIn 0.5s forwards;}@keyframes fadeIn{to{opacity:1}}
