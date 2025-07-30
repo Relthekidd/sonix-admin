@@ -1,6 +1,5 @@
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+
 import { Upload, Users, CheckCircle, TrendingUp, Music, PlayCircle, Clock, Star, UserCheck, Loader2 } from "lucide-react";
 import { useRecentTracks, usePlatformStats, useVerificationRequests } from "../../utils/supabase/hooks";
 
@@ -10,43 +9,42 @@ const quickAccessCards = [
     description: "Add singles and albums to the platform",
     icon: Upload,
     iconColor: "text-sonix-purple",
-    href: "Upload"
+    href: "/upload"
   },
   {
     title: "Manage Artists", 
     description: "Browse and edit artist profiles",
     icon: Users,
     iconColor: "text-sonix-green",
-    href: "Artists"
+    href: "/artists"
   },
   {
     title: "Platform Users",
     description: "Manage user accounts and roles",
     icon: UserCheck,
     iconColor: "text-sonix-purple",
-    href: "Users"
+    href: "/users"
   },
   {
     title: "Content Library",
     description: "View all uploaded content",
     icon: Music,
     iconColor: "text-orange-400",
-    href: "Uploads"
+    href: "/uploads"
   },
   {
     title: "Platform Analytics",
     description: "Performance insights and reports",
     icon: TrendingUp,
     iconColor: "text-pink-400",
-    href: "Analytics"
+    href: "/analytics"
   }
 ];
 
-interface DashboardPageProps {
-  onNavigate: (page: string) => void;
-}
+import { useNavigate } from "react-router-dom";
 
-export function DashboardPage({ onNavigate }: DashboardPageProps) {
+export function DashboardPage() {
+  const navigate = useNavigate();
   const { data: recentTracks, loading: tracksLoading } = useRecentTracks(4);
   const { stats: platformStats, loading: statsLoading } = usePlatformStats() as {
     stats: any;
@@ -93,7 +91,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               return (
                 <button
                   key={card.title}
-                  onClick={() => onNavigate(card.href)}
+                  onClick={() => navigate(card.href)}
                   className="sonix-card hover:sonix-shadow-lg transition-all duration-300 hover:-translate-y-1 text-left group hover:sonix-glow"
                 >
                   <div className="flex items-center justify-between mb-4">
