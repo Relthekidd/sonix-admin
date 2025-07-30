@@ -124,7 +124,7 @@ export function Dashboard() {
   return (
     <div className="flex h-screen bg-sonix-black" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       {/* Sidebar */}
-      <div className="w-72 bg-sonix-black border-r border-sonix flex flex-col">
+      <div className="w-60 sonix-sidebar flex flex-col">
         {/* Logo */}
         <div className="p-8 border-b border-sonix">
           <div className="flex items-center space-x-4">

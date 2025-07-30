@@ -41,10 +41,11 @@ const quickAccessCards = [
   }
 ];
 
-import { useNavigate } from "react-router-dom";
+interface DashboardPageProps {
+  onNavigate?: (page: string) => void;
+}
 
-export function DashboardPage() {
-  const navigate = useNavigate();
+export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const { data: recentTracks, loading: tracksLoading } = useRecentTracks(4);
   const { stats: platformStats, loading: statsLoading } = usePlatformStats() as {
     stats: any;
@@ -64,17 +65,19 @@ export function DashboardPage() {
   return (
     <>
       {/* Header */}
-      <header className="bg-sonix-black border-b border-sonix px-8 py-8">
+      <header className="sonix-header px-8 py-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-sonix-primary mb-2">Welcome back, Admin</h1>
-            <p className="text-sonix-secondary font-medium">Here's what's happening on Sonix today</p>
+            <h1 className="text-4xl font-bold text-sonix-primary mb-3 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              Welcome back, Admin
+            </h1>
+            <p className="text-sonix-secondary font-medium text-lg">Here's what's happening on Sonix today</p>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="sonix-tag">
+            <div className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 text-white font-semibold text-sm sonix-glow">
               🎵 Sonix Admin
             </div>
-            <Badge className="bg-sonix-green text-white">
+            <Badge className="bg-sonix-green text-white sonix-green-glow px-3 py-1">
               ✅ Connected to Supabase
             </Badge>
           </div>
@@ -83,25 +86,32 @@ export function DashboardPage() {
 
       <main className="flex-1 overflow-auto p-8 bg-sonix-black">
         {/* Quick Access Cards */}
-        <div className="mb-10">
-          <h2 className="text-2xl font-bold text-sonix-primary mb-6">Quick Access</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-sonix-primary mb-8">Quick Access</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 overflow-x-auto">
             {quickAccessCards.map((card) => {
               const Icon = card.icon;
               return (
                 <button
                   key={card.title}
-                  onClick={() => navigate(card.href)}
-                  className="sonix-card hover:sonix-shadow-lg transition-all duration-300 hover:-translate-y-1 text-left group hover:sonix-glow"
+                  onClick={() => {
+                    const pageName = card.href.replace('/', '').replace(/^\w/, c => c.toUpperCase());
+                    onNavigate?.(pageName === 'Upload' ? 'Upload' : 
+                               pageName === 'Artists' ? 'Artists' :
+                               pageName === 'Users' ? 'Users' :
+                               pageName === 'Uploads' ? 'Uploads' :
+                               pageName === 'Analytics' ? 'Analytics' : 'Dashboard');
+                  }}
+                  className="sonix-quick-card text-left group min-w-[280px]"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-xl bg-sonix-tag flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      <Icon className={`w-6 h-6 ${card.iconColor}`} />
+                  <div className="flex items-center justify-between mb-6">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300 group-hover:border-purple-400/50`}>
+                      <Icon className={`w-8 h-8 ${card.iconColor} group-hover:scale-110 transition-transform`} />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-bold text-sonix-primary mb-2 group-hover:text-sonix-purple transition-colors">{card.title}</h3>
-                    <p className="text-sm text-sonix-secondary">{card.description}</p>
+                    <h3 className="text-xl font-bold text-sonix-primary mb-3 group-hover:text-sonix-purple transition-colors">{card.title}</h3>
+                    <p className="text-sonix-secondary leading-relaxed">{card.description}</p>
                   </div>
                 </button>
               );

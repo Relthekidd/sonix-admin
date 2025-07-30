@@ -219,11 +219,39 @@ html {
 /* Enhanced component styling for Sonix theme */
 @layer components {
   .sonix-card {
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-sonix-border);
+    border-radius: 1rem;
+    border: 1px solid rgba(139, 92, 246, 0.2);
     padding: 1.5rem;
-    background-color: var(--color-sonix-card);
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 4px 20px;
+    background: rgba(26, 26, 29, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 
+      rgba(0, 0, 0, 0.3) 0px 8px 32px,
+      inset rgba(139, 92, 246, 0.1) 0px 1px 0px,
+      inset rgba(255, 255, 255, 0.05) 0px 1px 0px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .sonix-card:hover {
+    transform: translateY(-2px) scale(1.02);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 
+      rgba(139, 92, 246, 0.2) 0px 12px 40px,
+      rgba(0, 0, 0, 0.4) 0px 8px 32px,
+      inset rgba(139, 92, 246, 0.15) 0px 1px 0px,
+      inset rgba(255, 255, 255, 0.08) 0px 1px 0px;
+  }
+
+  .sonix-glass-card {
+    border-radius: 1rem;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    padding: 1.5rem;
+    background: rgba(14, 14, 16, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 
+      rgba(0, 0, 0, 0.4) 0px 8px 32px,
+      inset rgba(139, 92, 246, 0.08) 0px 1px 0px;
   }
   
   .sonix-button-primary {
@@ -313,7 +341,165 @@ html {
   .sonix-green-glow {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
   }
+
+  /* Quick Access Card Styles */
+  .sonix-quick-card {
+    border-radius: 1.25rem;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    padding: 2rem;
+    background: rgba(26, 26, 29, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 
+      rgba(0, 0, 0, 0.25) 0px 8px 32px,
+      inset rgba(139, 92, 246, 0.08) 0px 1px 0px,
+      inset rgba(255, 255, 255, 0.03) 0px 1px 0px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sonix-quick-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+    transition: left 0.5s;
+  }
+
+  .sonix-quick-card:hover::before {
+    left: 100%;
+  }
+
+  .sonix-quick-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 
+      rgba(139, 92, 246, 0.15) 0px 16px 48px,
+      rgba(0, 0, 0, 0.3) 0px 12px 40px,
+      inset rgba(139, 92, 246, 0.12) 0px 1px 0px,
+      inset rgba(255, 255, 255, 0.06) 0px 1px 0px;
+  }
+
+  /* Status Card Styles */
+  .sonix-status-card {
+    border-radius: 1rem;
+    border: 1px solid rgba(139, 92, 246, 0.12);
+    padding: 1.5rem;
+    background: rgba(26, 26, 29, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 
+      rgba(0, 0, 0, 0.2) 0px 6px 24px,
+      inset rgba(139, 92, 246, 0.06) 0px 1px 0px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .sonix-status-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(139, 92, 246, 0.25);
+    box-shadow: 
+      rgba(139, 92, 246, 0.1) 0px 12px 32px,
+      rgba(0, 0, 0, 0.25) 0px 8px 28px,
+      inset rgba(139, 92, 246, 0.08) 0px 1px 0px;
+  }
+
+  /* Sidebar Glassmorphism */
+  .sonix-sidebar {
+    background: rgba(14, 14, 16, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(139, 92, 246, 0.1);
+  }
+
+  /* Header Glassmorphism */
+  .sonix-header {
+    background: rgba(14, 14, 16, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  }
+
+  /* Pulse Animation for Status Indicators */
+  .sonix-pulse {
+    animation: sonix-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes sonix-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Smooth Slide Animation */
+  .sonix-slide-in {
+    animation: sonix-slide-in 0.3s ease-out;
+  }
+
+  @keyframes sonix-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Enhanced Button Styles */
+  .sonix-button-primary {
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #FFFFFF;
+    background: linear-gradient(135deg, var(--color-sonix-electric-purple), #A855F7);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    box-shadow: 
+      rgba(139, 92, 246, 0.2) 0px 4px 16px,
+      inset rgba(255, 255, 255, 0.1) 0px 1px 0px;
+  }
+
+  .sonix-button-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .sonix-button-primary:hover::before {
+    left: 100%;
+  }
+
+  .sonix-button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      rgba(139, 92, 246, 0.4) 0px 8px 24px,
+      inset rgba(255, 255, 255, 0.15) 0px 1px 0px;
+  }
+
+  .sonix-button-primary:active {
+    transform: translateY(0px);
+    box-shadow: 
+      rgba(139, 92, 246, 0.3) 0px 4px 16px,
+      inset rgba(0, 0, 0, 0.1) 0px 2px 4px;
+  }
 }
+
 /* Basic form field layout */
 .sonix-form-field {
   display: flex;
@@ -321,3 +507,23 @@ html {
   gap: 0.25rem;
 }
 
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .sonix-sidebar {
+    width: 80px;
+  }
+  
+  .sonix-sidebar .sidebar-label {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .sonix-quick-card {
+    padding: 1.5rem;
+  }
+  
+  .sonix-status-card {
+    padding: 1.25rem;
+  }
+}
