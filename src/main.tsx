@@ -11,6 +11,7 @@ import { AuthProvider } from '../utils/auth/AuthContext'
 import { ProtectedRoute } from '../components/common/ProtectedRoute'
 import { DashboardPage } from '../components/pages/DashboardPage'
 import { LoginPage } from '../components/pages/LoginPage'
+import { UnauthorizedPage } from '../components/pages/UnauthorizedPage'
 import '../styles/globals.css'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route
               path="/"
               element={
