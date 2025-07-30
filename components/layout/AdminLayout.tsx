@@ -108,7 +108,7 @@ export function AdminLayout() {
       <div
         className={`${
           sidebarCollapsed ? 'w-20' : 'w-60'
-        } glassmorphism-sidebar flex flex-col transition-all duration-500 ease-in-out ${
+        } glassmorphism-sidebar flex flex-col transition-all duration-500 ease-in-out py-6 ${
           mobileMenuOpen ? 'fixed z-50 inset-y-0 left-0' : 'hidden lg:flex'
         }`}
       >
@@ -166,26 +166,9 @@ export function AdminLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto glassmorphism-scrollbar">
+        <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto glassmorphism-scrollbar">
           {navigationItems.map(renderNavItem)}
         </nav>
-
-        {/* Upgrade CTA */}
-        {!sidebarCollapsed && (
-          <div className="p-4">
-            <div className="glassmorphism-upgrade-card">
-              <div className="glassmorphism-upgrade-icon">
-                <Settings className="w-6 h-6 text-purple-300" />
-              </div>
-              <h4 className="text-white font-bold mb-2">Upgrade Storage</h4>
-              <p className="text-slate-400 text-sm mb-4">Get unlimited music uploads</p>
-              <button className="glassmorphism-upgrade-btn">
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade Now
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Main Content Area */}

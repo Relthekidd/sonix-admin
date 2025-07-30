@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Download, MoreHorizontal, CheckCircle, User as UserIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -14,6 +15,7 @@ export function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const { data: users, loading } = useUsers();
+  const navigate = useNavigate();
 
   const filteredUsers = (users || []).filter(user => {
     const matchesSearch =
@@ -41,9 +43,12 @@ export function UsersPage() {
   };
 
   return (
-    <div className="container fade-in space-y-8">
+    <div className="glass-page fade-in space-y-8">
+      <button onClick={() => navigate(-1)} className="glass-back-button mb-4">
+        ← Back
+      </button>
       {/* Header */}
-      <header className="bg-dark-bg border-b border-dark-color px-8 py-6 rounded-xl shadow">
+      <header className="glass-panel">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-dark-primary">Users</h1>
@@ -56,7 +61,7 @@ export function UsersPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-dark-bg rounded-xl shadow">
+      <main className="glass-panel">
         {/* Search and Filters */}
         <div className="mb-8 flex items-center space-x-4">
           <div className="relative flex-1 max-w-md">
