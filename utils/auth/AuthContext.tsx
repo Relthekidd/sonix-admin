@@ -26,8 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check if the given user has an admin role
-  const fetchAdminStatus = async (userId: string): Promise<boolean> => {
+  // Fetch the role for the given user from the users table
+  const getUserRole = async (userId: string) => {
     const { data, error } = await supabase
       .from('users')
       .select('role')
@@ -36,36 +36,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error('Error fetching user role:', error);
-      return false;
+      return null;
     }
 
-    return data?.role === 'admin';
+    return data?.role as string | null;
   };
 
   useEffect(() => {
-    let mounted = true;
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 6000);
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setLoading(true);
 
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      setSession(data.session);
-      if (data.session?.user) {
-        setIsAdmin(await fetchAdminStatus(data.session.user.id));
+      if (session?.user) {
+        const role = await getUserRole(session.user.id);
+        setIsAdmin(role === 'admin');
       }
 
       setLoading(false);
     };
 
-    init();
+    initAuth();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_evt, sess) => {
-      if (!mounted) return;
-      setSession(sess);
-      if (sess?.user) {
-        setIsAdmin(await fetchAdminStatus(sess.user.id));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        getUserRole(session.user.id).then((role) => {
+          setIsAdmin(role === 'admin');
+          setLoading(false);
+        });
       } else {
         setIsAdmin(false);
         setLoading(false);
@@ -84,7 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setSession(data.session);
     if (data.session?.user) {
-      setIsAdmin(await fetchAdminStatus(data.session.user.id));
+      const role = await getUserRole(data.session.user.id);
+      setIsAdmin(role === 'admin');
     }
     setLoading(false);
   };
