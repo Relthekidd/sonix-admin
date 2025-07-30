@@ -41,65 +41,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
-
-    const getInitialSession = async () => {
-      try {
-        setError(null);
-        setLoading(true);
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          setError('Failed to retrieve session');
-          return;
-        }
-
-        if (mounted) {
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            await checkAdminStatus(session.user.id);
-          }
-        }
-      } catch (error) {
-        console.error('Error getting initial session:', error);
-        if (mounted) {
-          setError('Authentication service unavailable');
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await checkAdminStatus(session.user.id);
       }
+      setLoading(false);
     };
 
-    getInitialSession();
+    getSession();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        setUser(session?.user ?? null);
-        setError(null);
-        
-        if (session?.user) {
-          await checkAdminStatus(session.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-        
-        setLoading(false);
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await checkAdminStatus(session.user.id);
+      } else {
+        setIsAdmin(false);
       }
-    );
+      setLoading(false);
+    });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const checkAdminStatus = async (userId: string): Promise<boolean> => {
