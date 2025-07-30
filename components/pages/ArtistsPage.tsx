@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Plus, MoreHorizontal, Star, Users, Music, TrendingUp } from "lucide-react";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -10,6 +11,7 @@ import { Skeleton } from "../ui/skeleton";
 export function ArtistsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { data: artists, loading } = useArtists();
+  const navigate = useNavigate();
 
   const filteredArtists = (artists || []).filter(artist =>
     artist.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,9 +36,12 @@ export function ArtistsPage() {
   };
 
   return (
-    <div className="container fade-in space-y-8">
+    <div className="glass-page fade-in space-y-8">
+      <button onClick={() => navigate(-1)} className="glass-back-button mb-4">
+        ← Back
+      </button>
       {/* Header */}
-      <header className="bg-dark-bg border-b border-dark-color px-8 py-6 rounded-xl shadow">
+      <header className="glass-panel">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-dark-primary">Artists</h1>
@@ -49,7 +54,7 @@ export function ArtistsPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-dark-bg rounded-xl shadow">
+      <main className="glass-panel">
         {/* Search and Filters */}
         <div className="mb-8">
           <div className="relative max-w-md">

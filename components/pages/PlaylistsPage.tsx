@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Plus, Music, Clock, Users, MoreHorizontal, Heart, Play } from "lucide-react";
 import { Input } from "../ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -12,6 +13,7 @@ export function PlaylistsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const { data: playlists, loading } = usePlaylists();
+  const navigate = useNavigate();
 
   const filteredPlaylists = (playlists || []).filter(playlist => {
     const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -21,9 +23,12 @@ export function PlaylistsPage() {
   });
 
   return (
-    <div className="container fade-in space-y-8">
+    <div className="glass-page fade-in space-y-8">
+      <button onClick={() => navigate(-1)} className="glass-back-button mb-4">
+        ← Back
+      </button>
       {/* Header */}
-      <header className="bg-dark-bg border-b border-dark-color px-8 py-6 rounded-xl shadow">
+      <header className="glass-panel">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-dark-primary">Playlists</h1>
@@ -36,7 +41,7 @@ export function PlaylistsPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-dark-bg rounded-xl shadow">
+      <main className="glass-panel">
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
           <div className="relative max-w-md">

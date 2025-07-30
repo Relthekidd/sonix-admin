@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, CheckCircle, XCircle, Clock, ExternalLink, Star } from "lucide-react";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -62,6 +63,7 @@ export function VerifyArtistsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArtist, setSelectedArtist] = useState<any>(null);
   const [reviewNotes, setReviewNotes] = useState("");
+  const navigate = useNavigate();
 
   const filteredArtists = pendingArtists.filter(artist =>
     artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,9 +81,12 @@ export function VerifyArtistsPage() {
   };
 
   return (
-    <>
+    <div className="glass-page fade-in space-y-8">
+      <button onClick={() => navigate(-1)} className="glass-back-button mb-4">
+        ← Back
+      </button>
       {/* Header */}
-      <header className="bg-dark-bg border-b border-dark-color px-8 py-6">
+      <header className="glass-panel">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-dark-primary">Verify Artists</h1>
@@ -95,7 +100,7 @@ export function VerifyArtistsPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-dark-bg">
+      <main className="glass-panel">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Artists List */}
           <div className="lg:col-span-1">
@@ -280,6 +285,6 @@ export function VerifyArtistsPage() {
           </div>
         </div>
       </main>
-    </>
+    </div>
   );
 }

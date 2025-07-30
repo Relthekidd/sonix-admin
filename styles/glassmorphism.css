@@ -832,3 +832,47 @@
   border-bottom: 1px solid rgba(139, 92, 246, 0.2);
 }
 
+/* =============================================================================
+   GENERIC GLASS PAGE & CARD
+   ============================================================================= */
+
+.glass-page {
+  padding: 2rem 1rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.glass-panel {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(26, 26, 29, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 6px 24px,
+    inset rgba(139, 92, 246, 0.08) 0px 1px 0px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: glassFadeInUp 0.6s ease forwards;
+}
+
+@keyframes glassFadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glass-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgba(199, 210, 254, 1);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.glass-back-button:hover {
+  color: white;
+  transform: translateX(-4px);
+}
