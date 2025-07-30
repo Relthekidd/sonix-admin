@@ -1,22 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase, getCurrentUser, signIn as supabaseSignIn, signOut as supabaseSignOut } from '../supabase/client';
+import {
+  supabase,
+  getCurrentUser,
+  signIn as supabaseSignIn,
+  signOut as supabaseSignOut,
+  type User,
+} from '../supabase/client';
 
-// Mock user type to match Supabase user structure
-interface MockUser {
-  id: string;
-  email: string;
-  user_metadata?: {
-    name?: string;
-    role?: string;
-  };
-  aud: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
-}
+// User from Supabase client
 
 interface AuthContextType {
-  user: MockUser | null;
+  user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -38,7 +32,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<MockUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -97,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { user: signedInUser } = await supabaseSignIn(email, password);
+      const signedInUser = await supabaseSignIn(email, password);
       if (signedInUser) {
         await checkAdminStatus(signedInUser.id);
       }
