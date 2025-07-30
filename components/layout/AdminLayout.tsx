@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
 import { useAuth } from "../../utils/auth/AuthContext";
 import {
   BarChart3,
@@ -10,171 +11,236 @@ import {
   FolderOpen,
   Users,
   CheckCircle,
-  TrendingUp,
-  LogIn,
   Menu,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Wifi,
+  Settings,
+  Crown,
 } from "lucide-react";
 
-const mainNavItems = [
-  { icon: BarChart3, label: "Dashboard", path: "/" },
-  { icon: Upload, label: "Upload", path: "/upload" },
-  { icon: Mic, label: "Artists", path: "/artists" },
-  { icon: Music, label: "Playlists", path: "/playlists" },
+const navigationItems = [
+  { icon: BarChart3, label: "Dashboard", path: "/", color: "text-purple-400" },
+  { icon: Upload, label: "Upload", path: "/upload", color: "text-emerald-400" },
+  { icon: Mic, label: "Artists", path: "/artists", color: "text-blue-400" },
+  { icon: Music, label: "Playlists", path: "/playlists", color: "text-orange-400" },
+  { icon: FolderOpen, label: "Uploads", path: "/uploads", color: "text-yellow-400" },
+  { icon: Users, label: "Users", path: "/users", color: "text-pink-400" },
+  { icon: CheckCircle, label: "Verify Artists", path: "/verify-artists", color: "text-green-400" },
 ];
 
-const contentItems = [
-  { icon: FolderOpen, label: "Uploads", path: "/uploads" },
-  { icon: Users, label: "Users", path: "/users" },
-  { icon: CheckCircle, label: "Verify Artists", path: "/verify-artists" },
-];
-
-const analyticsItems = [
-  { icon: TrendingUp, label: "Analytics", path: "/analytics" },
-];
-
-export function AdminLayout() {
+export function EnhancedAdminLayout() {
   const { session, signOut } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setCollapsed(true);
-    }
     const handleResize = () => {
       if (window.innerWidth < 1024) {
-        setCollapsed(true);
+        setSidebarCollapsed(true);
+        setMobileMenuOpen(false);
+      } else {
+        setMobileMenuOpen(false);
       }
     };
+
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const renderNavItem = (
-    item: { icon: any; label: string; path?: string },
-  ) => {
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
+
+  const renderNavItem = (item: typeof navigationItems[0]) => {
     const Icon = item.icon;
-    if (item.label === "Logout") {
-      return (
-        <button
-          key={item.label}
-          onClick={signOut}
-          className="sonix-nav-item text-sonix-error w-full text-left"
-        >
-          <Icon className="w-5 h-5 text-sonix-error" />
-          <span>{item.label}</span>
-        </button>
-      );
-    }
+    
     return (
       <NavLink
         key={item.label}
-        to={item.path!}
+        to={item.path}
         end={item.path === "/"}
         className={({ isActive }) =>
-          `sonix-nav-item w-full text-left ${
-            isActive ? "sonix-nav-item-active" : ""
-          }`
+          `glassmorphism-nav-item group ${isActive ? "glassmorphism-nav-active" : ""}`
         }
       >
-        <Icon className="w-5 h-5" />
-        <span>{item.label}</span>
+        {({ isActive }) => (
+          <div className="flex items-center space-x-4">
+            <div className={`glassmorphism-icon-container ${
+              isActive ? 'glassmorphism-icon-active' : ''
+            }`}>
+              <Icon className={`w-5 h-5 transition-all duration-300 ${
+                isActive ? 'text-purple-300 scale-110' : `${item.color} group-hover:text-purple-300 group-hover:scale-105`
+              }`} />
+            </div>
+            {!sidebarCollapsed && (
+              <span className={`font-medium transition-all duration-300 ${
+                isActive 
+                  ? 'text-white font-semibold' 
+                  : 'text-slate-300 group-hover:text-white'
+              }`}>
+                {item.label}
+              </span>
+            )}
+            {isActive && !sidebarCollapsed && (
+              <div className="ml-auto w-2 h-2 rounded-full bg-purple-400 animate-pulse shadow-lg shadow-purple-400/50" />
+            )}
+          </div>
+        )}
       </NavLink>
     );
   };
 
   return (
-    <div className="flex h-screen bg-sonix-black" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="lg:hidden absolute top-4 left-4 p-2 rounded-lg bg-sonix-card sonix-shadow"
-      >
-        <Menu className="w-5 h-5 text-sonix-primary" />
-      </button>
+    <div className="flex h-screen bg-slate-950 overflow-hidden">
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Enhanced Glassmorphism Sidebar */}
       <div
-        className={`${collapsed ? 'w-20' : 'w-72'} sonix-sidebar border-r border-sonix flex flex-col transition-all duration-300 ${!collapsed ? 'fixed z-40 inset-y-0 left-0 lg:relative' : ''}`}
+        className={`${
+          sidebarCollapsed ? 'w-20' : 'w-60'
+        } glassmorphism-sidebar flex flex-col transition-all duration-500 ease-in-out ${
+          mobileMenuOpen ? 'fixed z-50 inset-y-0 left-0' : 'hidden lg:flex'
+        }`}
       >
-        <div className="p-6 border-b border-sonix flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-500 to-violet-600 rounded-2xl flex items-center justify-center sonix-glow">
-              <span className="text-white font-bold text-lg">🎵</span>
-            </div>
-            {!collapsed && (
-              <div>
-                <h1 className="text-lg font-bold text-sonix-primary">Sonix</h1>
-                <p className="text-xs text-sonix-secondary font-medium">Admin Dashboard</p>
+        {/* Logo Header */}
+        <div className="glassmorphism-header">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="glassmorphism-logo">
+                <span className="text-white font-bold text-lg relative z-10">🎵</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-purple-400/30 to-purple-600/20 rounded-2xl animate-pulse" />
               </div>
-            )}
+              {!sidebarCollapsed && (
+                <div>
+                  <h1 className="text-xl font-bold text-white">Sonix</h1>
+                  <p className="text-xs text-slate-400 font-medium">Admin Dashboard</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:flex glassmorphism-toggle-btn"
+            >
+              {sidebarCollapsed ? (
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              ) : (
+                <ChevronLeft className="w-4 h-4 text-slate-400" />
+              )}
+            </button>
           </div>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="sonix-nav-item p-2 w-auto"
-          >
-            {collapsed ? '›' : '‹'}
-          </button>
         </div>
 
-        <div className="p-4 border-b border-sonix">
+        {/* User Profile */}
+        <div className="glassmorphism-user-section">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-sonix-purple rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-semibold">
+            <div className="glassmorphism-avatar">
+              <span className="text-white text-sm font-bold">
                 {session?.user?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
-            {!collapsed && (
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-sonix-primary truncate">
+            {!sidebarCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold truncate">
                   {session?.user?.user_metadata?.name || 'Admin'}
                 </p>
-                <p className="text-xs text-sonix-secondary truncate">
+                <p className="text-slate-400 text-sm truncate">
                   {session?.user?.email}
                 </p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
+                  <span className="text-xs text-emerald-400 font-medium">Online</span>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <nav className="flex-1 p-6 space-y-8 overflow-y-auto">
-          <div className="space-y-2">
-            {mainNavItems.map(renderNavItem)}
-          </div>
-          <Separator style={{ backgroundColor: '#3F3F46' }} />
-          <div className="space-y-4">
-            {!collapsed && (
-              <div className="px-4">
-                <h3 className="text-xs font-bold text-sonix-secondary uppercase tracking-widest">Content</h3>
-              </div>
-            )}
-            <div className="space-y-2">
-              {contentItems.map(renderNavItem)}
-            </div>
-          </div>
-          <Separator style={{ backgroundColor: '#3F3F46' }} />
-          <div className="space-y-4">
-            {!collapsed && (
-              <div className="px-4">
-                <h3 className="text-xs font-bold text-sonix-secondary uppercase tracking-widest">Insights</h3>
-              </div>
-            )}
-            <div className="space-y-2">
-              {analyticsItems.map(renderNavItem)}
-            </div>
-          </div>
-          <Separator style={{ backgroundColor: '#3F3F46' }} />
-          <div className="space-y-2">
-            {renderNavItem({ icon: LogIn, label: 'Logout' })}
-          </div>
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto glassmorphism-scrollbar">
+          {navigationItems.map(renderNavItem)}
         </nav>
-        <div className="p-6 border-t border-sonix">
-          <div className="bg-sonix-card rounded-xl p-4 text-center border border-sonix">
-            <h4 className="text-sm font-bold text-sonix-primary mb-2">Upgrade Storage</h4>
-            <p className="text-xs text-sonix-secondary mb-3">Get unlimited music uploads</p>
-            <button className="sonix-button-primary text-xs py-2 px-4 w-full">Upgrade Now</button>
+
+        {/* Upgrade CTA */}
+        {!sidebarCollapsed && (
+          <div className="p-4">
+            <div className="glassmorphism-upgrade-card">
+              <div className="glassmorphism-upgrade-icon">
+                <Settings className="w-6 h-6 text-purple-300" />
+              </div>
+              <h4 className="text-white font-bold mb-2">Upgrade Storage</h4>
+              <p className="text-slate-400 text-sm mb-4">Get unlimited music uploads</p>
+              <button className="glassmorphism-upgrade-btn">
+                <Crown className="w-4 h-4 mr-2" />
+                Upgrade Now
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="flex-1 flex flex-col overflow-auto">
-        <Outlet />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Header */}
+        <div className="lg:hidden glassmorphism-mobile-header">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="glassmorphism-mobile-toggle"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-5 h-5 text-white" />
+            ) : (
+              <Menu className="w-5 h-5 text-white" />
+            )}
+          </button>
+          
+          <div className="flex items-center space-x-3">
+            <div className="glassmorphism-logo-small">
+              <span className="text-white font-bold text-sm">🎵</span>
+            </div>
+            <h1 className="text-lg font-bold text-white">Sonix Admin</h1>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <Badge className="glassmorphism-status-badge">
+              <Crown className="w-3 h-3 mr-1" />
+              Admin
+            </Badge>
+            <div className="glassmorphism-avatar-small">
+              <span className="text-white text-xs font-bold">
+                {session?.user?.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Status Bar - Desktop Only */}
+        <div className="hidden lg:flex glassmorphism-status-bar">
+          <div className="flex items-center space-x-4 ml-auto">
+            <Badge className="glassmorphism-admin-badge">
+              <Crown className="w-4 h-4 mr-2" />
+              Sonix Admin
+            </Badge>
+            <Badge className="glassmorphism-connection-badge">
+              <Wifi className="w-4 h-4 mr-2" />
+              Connected to Supabase
+            </Badge>
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div className="flex-1 overflow-auto glassmorphism-main-content">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

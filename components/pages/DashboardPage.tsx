@@ -1,6 +1,23 @@
+import { useState, useEffect } from "react";
 import { Badge } from "../ui/badge";
-
-import { Upload, Users, CheckCircle, TrendingUp, Music, PlayCircle, Clock, Star, UserCheck, Loader2 } from "lucide-react";
+import { 
+  Upload, 
+  Users, 
+  CheckCircle, 
+  TrendingUp, 
+  Music, 
+  PlayCircle, 
+  Clock, 
+  Star, 
+  UserCheck, 
+  Loader2,
+  Mic,
+  FolderOpen,
+  BarChart3,
+  ArrowRight,
+  Zap,
+  Activity
+} from "lucide-react";
 import { useRecentTracks, usePlatformStats, useVerificationRequests } from "../../utils/supabase/hooks";
 
 const quickAccessCards = [
@@ -8,44 +25,51 @@ const quickAccessCards = [
     title: "Upload Music",
     description: "Add singles and albums to the platform",
     icon: Upload,
-    iconColor: "text-sonix-purple",
+    iconColor: "text-purple-400",
+    bgGradient: "from-purple-600/20 to-violet-600/20",
+    borderColor: "border-purple-500/30",
     href: "/upload"
   },
   {
     title: "Manage Artists", 
     description: "Browse and edit artist profiles",
-    icon: Users,
-    iconColor: "text-sonix-green",
+    icon: Mic,
+    iconColor: "text-emerald-400",
+    bgGradient: "from-emerald-600/20 to-teal-600/20",
+    borderColor: "border-emerald-500/30",
     href: "/artists"
   },
   {
     title: "Platform Users",
     description: "Manage user accounts and roles",
     icon: UserCheck,
-    iconColor: "text-sonix-purple",
+    iconColor: "text-blue-400",
+    bgGradient: "from-blue-600/20 to-indigo-600/20",
+    borderColor: "border-blue-500/30",
     href: "/users"
   },
   {
     title: "Content Library",
     description: "View all uploaded content",
-    icon: Music,
+    icon: FolderOpen,
     iconColor: "text-orange-400",
+    bgGradient: "from-orange-600/20 to-amber-600/20",
+    borderColor: "border-orange-500/30",
     href: "/uploads"
   },
   {
     title: "Platform Analytics",
     description: "Performance insights and reports",
-    icon: TrendingUp,
+    icon: BarChart3,
     iconColor: "text-pink-400",
+    bgGradient: "from-pink-600/20 to-rose-600/20",
+    borderColor: "border-pink-500/30",
     href: "/analytics"
   }
 ];
 
-interface DashboardPageProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function DashboardPage({ onNavigate }: DashboardPageProps) {
+export function EnhancedDashboardPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const { data: recentTracks, loading: tracksLoading } = useRecentTracks(4);
   const { stats: platformStats, loading: statsLoading } = usePlatformStats() as {
     stats: any;
@@ -53,291 +77,327 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   };
   const { data: verificationRequests, loading: requestsLoading } = useVerificationRequests();
 
-  const renderLoadingCard = (title: string) => (
-    <div className="sonix-card flex items-center justify-center h-32">
-      <div className="flex flex-col items-center space-y-2">
-        <Loader2 className="w-6 h-6 text-sonix-purple animate-spin" />
-        <p className="text-sm text-sonix-secondary">Loading {title}...</p>
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="glassmorphism-loading-screen">
+        <div className="glassmorphism-loading-container">
+          <div className="glassmorphism-loading-logo">
+            <span className="text-white font-bold text-3xl">🎵</span>
+            <div className="absolute inset-0 border-4 border-purple-400/30 rounded-3xl animate-ping" />
+          </div>
+          <div className="text-center mt-6">
+            <h2 className="text-2xl font-bold text-white mb-2">Loading Sonix Admin</h2>
+            <p className="text-slate-400">Preparing your dashboard...</p>
+            <div className="glassmorphism-loading-bar">
+              <div className="glassmorphism-loading-progress" />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <>
-      {/* Header */}
-      <header className="sonix-header px-8 py-8">
-        <div className="flex items-center justify-between">
+      {/* Enhanced Greeting Header */}
+      <header className="glassmorphism-dashboard-header">
+        <div className="glassmorphism-header-content">
           <div>
-            <h1 className="text-4xl font-bold text-sonix-primary mb-3 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <h1 className="glassmorphism-main-title">
               Welcome back, Admin
             </h1>
-            <p className="text-sonix-secondary font-medium text-lg">Here's what's happening on Sonix today</p>
+            <p className="glassmorphism-subtitle">
+              Here's what's happening on Sonix today
+            </p>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 text-white font-semibold text-sm sonix-glow">
-              🎵 Sonix Admin
+          <div className="glassmorphism-header-stats">
+            <div className="glassmorphism-live-indicator">
+              <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span className="text-emerald-400 font-medium">Live</span>
             </div>
-            <Badge className="bg-sonix-green text-white sonix-green-glow px-3 py-1">
-              ✅ Connected to Supabase
-            </Badge>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-sonix-black">
+      <main className="glassmorphism-dashboard-main">
         {/* Quick Access Cards */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-sonix-primary mb-8">Quick Access</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 overflow-x-auto">
-            {quickAccessCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <button
-                  key={card.title}
-                  onClick={() => {
-                    const pageName = card.href.replace('/', '').replace(/^\w/, c => c.toUpperCase());
-                    onNavigate?.(pageName === 'Upload' ? 'Upload' : 
-                               pageName === 'Artists' ? 'Artists' :
-                               pageName === 'Users' ? 'Users' :
-                               pageName === 'Uploads' ? 'Uploads' :
-                               pageName === 'Analytics' ? 'Analytics' : 'Dashboard');
-                  }}
-                  className="sonix-quick-card text-left group min-w-[280px]"
-                >
-                  <div className="flex items-center justify-between mb-6">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/20 to-violet-600/20 border border-purple-500/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300 group-hover:border-purple-400/50`}>
-                      <Icon className={`w-8 h-8 ${card.iconColor} group-hover:scale-110 transition-transform`} />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-sonix-primary mb-3 group-hover:text-sonix-purple transition-colors">{card.title}</h3>
-                    <p className="text-sonix-secondary leading-relaxed">{card.description}</p>
-                  </div>
-                </button>
-              );
-            })}
+        <section className="glassmorphism-section">
+          <div className="glassmorphism-section-header">
+            <h2 className="glassmorphism-section-title">Quick Access</h2>
+            <div className="glassmorphism-section-divider" />
           </div>
-        </div>
+          
+          <div className="glassmorphism-quick-access-container">
+            <div className="glassmorphism-quick-access-scroll">
+              {quickAccessCards.map((card, index) => {
+                const Icon = card.icon;
+                return (
+                  <button
+                    key={card.title}
+                    className="glassmorphism-quick-card group"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="glassmorphism-quick-card-header">
+                      <div className={`glassmorphism-quick-icon bg-gradient-to-br ${card.bgGradient} border ${card.borderColor}`}>
+                        <Icon className={`w-8 h-8 ${card.iconColor} group-hover:scale-110 transition-transform duration-300`} />
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-purple-400 group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
+                    <div className="glassmorphism-quick-card-content">
+                      <h3 className="glassmorphism-quick-card-title">
+                        {card.title}
+                      </h3>
+                      <p className="glassmorphism-quick-card-description">
+                        {card.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
 
-        {/* Status Widgets */}
-        <div className="mb-10">
-          <h2 className="text-2xl font-bold text-sonix-primary mb-6">Platform Status</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Upload Queue Status */}
-            <div className="sonix-card">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-sonix-tag flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-sonix-purple" />
+        {/* Platform Status Cards */}
+        <section className="glassmorphism-section">
+          <div className="glassmorphism-section-header">
+            <h2 className="glassmorphism-section-title">Platform Status</h2>
+            <div className="glassmorphism-section-divider" />
+          </div>
+          
+          <div className="glassmorphism-status-grid">
+            {/* Upload Queue */}
+            <div className="glassmorphism-status-card group">
+              <div className="glassmorphism-status-header">
+                <div className="glassmorphism-status-icon bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-blue-500/30">
+                  <Clock className="w-6 h-6 text-blue-400" />
                 </div>
-                <div className="w-3 h-3 rounded-full bg-sonix-green" />
+                <div className="glassmorphism-status-indicator">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
+                  <span className="text-xs font-semibold text-emerald-400">ACTIVE</span>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold text-sonix-primary mb-1">3</h3>
-                <p className="text-sm font-medium text-sonix-secondary">Upload Queue</p>
-                <p className="text-xs text-sonix-secondary mt-1">Files processing</p>
+              <div className="glassmorphism-status-content">
+                <h3 className="glassmorphism-status-number">3</h3>
+                <p className="glassmorphism-status-label">Upload Queue</p>
+                <p className="glassmorphism-status-sublabel">Files processing</p>
               </div>
             </div>
 
             {/* Verification Requests */}
-            <div className="sonix-card">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-sonix-tag flex items-center justify-center">
+            <div className="glassmorphism-status-card group">
+              <div className="glassmorphism-status-header">
+                <div className="glassmorphism-status-icon bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-yellow-500/30">
                   <Star className="w-6 h-6 text-yellow-400" />
                 </div>
-                <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                <div className="glassmorphism-status-indicator">
+                  <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shadow-lg shadow-yellow-400/50" />
+                  <span className="text-xs font-semibold text-yellow-400">PENDING</span>
+                </div>
               </div>
-              <div>
+              <div className="glassmorphism-status-content">
                 {requestsLoading ? (
                   <div className="flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-sonix-secondary" />
-                    <span className="text-sm text-sonix-secondary">Loading...</span>
+                    <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                    <span className="text-slate-400">Loading...</span>
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-2xl font-bold text-sonix-primary mb-1">
+                    <h3 className="glassmorphism-status-number">
                       {verificationRequests?.length || 0}
                     </h3>
-                    <p className="text-sm font-medium text-sonix-secondary">Verification Requests</p>
-                    <p className="text-xs text-sonix-secondary mt-1">Artists pending approval</p>
+                    <p className="glassmorphism-status-label">Verification Requests</p>
+                    <p className="glassmorphism-status-sublabel">Artists pending approval</p>
                   </>
                 )}
               </div>
             </div>
 
-            {/* Top Track Today */}
-            <div className="sonix-card">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-sonix-tag flex items-center justify-center">
-                  <PlayCircle className="w-6 h-6 text-sonix-green" />
+            {/* Today's Top Track */}
+            <div className="glassmorphism-status-card glassmorphism-featured-card group">
+              <div className="glassmorphism-status-header">
+                <div className="glassmorphism-status-icon bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30">
+                  <PlayCircle className="w-6 h-6 text-emerald-400" />
                 </div>
-                <div className="w-3 h-3 rounded-full bg-sonix-purple" />
+                <div className="glassmorphism-status-indicator">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
+                  <span className="text-xs font-semibold text-emerald-400">TRENDING</span>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-sonix-primary mb-1">Midnight Dreams</h3>
-                <p className="text-sm font-medium text-sonix-secondary">Today's Top Track</p>
-                <p className="text-xs text-sonix-secondary mt-1">by Luna Rodriguez • 47.2K plays</p>
+              <div className="glassmorphism-status-content">
+                <h3 className="glassmorphism-featured-title">Midnight Dreams</h3>
+                <p className="glassmorphism-status-label">Today's Top Track</p>
+                <p className="glassmorphism-status-sublabel">by Luna Rodriguez • 47.2K plays • +12% from yesterday</p>
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* Active Users */}
-            <div className="sonix-card">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-sonix-tag flex items-center justify-center">
-                  <Users className="w-6 h-6 text-sonix-purple" />
+        {/* Recent Activity Section */}
+        <section className="glassmorphism-section">
+          <div className="glassmorphism-activity-grid">
+            {/* Recent Uploads */}
+            <div className="glassmorphism-activity-card">
+              <div className="glassmorphism-activity-header">
+                <div>
+                  <h3 className="glassmorphism-activity-title">Recent Uploads</h3>
+                  <p className="glassmorphism-activity-subtitle">Latest music added to the platform</p>
                 </div>
-                <div className="w-3 h-3 rounded-full bg-sonix-green" />
+                <Badge className="glassmorphism-live-badge">
+                  <Zap className="w-3 h-3 mr-1" />
+                  Live Data from Supabase
+                </Badge>
               </div>
-              <div>
-                {statsLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-sonix-secondary" />
-                    <span className="text-sm text-sonix-secondary">Loading...</span>
+              
+              <div className="glassmorphism-activity-content">
+                {tracksLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="glassmorphism-loading-item">
+                        <div className="glassmorphism-loading-avatar" />
+                        <div className="flex-1 space-y-2">
+                          <div className="glassmorphism-loading-line w-3/4" />
+                          <div className="glassmorphism-loading-line w-1/2" />
+                        </div>
+                        <div className="glassmorphism-loading-badge" />
+                      </div>
+                    ))}
+                  </div>
+                ) : recentTracks && recentTracks.length > 0 ? (
+                  <div className="space-y-3">
+                    {recentTracks.map((track, index) => (
+                      <div 
+                        key={track.id} 
+                        className="glassmorphism-track-item"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                      >
+                        <div className="glassmorphism-track-icon">
+                          <Music className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="glassmorphism-track-title">{track.title}</p>
+                          <p className="glassmorphism-track-artist">
+                            by {track.artist?.name || 'Unknown Artist'}
+                          </p>
+                        </div>
+                        <div className="glassmorphism-track-meta">
+                          <div className="glassmorphism-track-badge">
+                            {track.album_id ? 'Album' : 'Single'}
+                          </div>
+                          <p className="glassmorphism-track-date">
+                            {new Date(track.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
-                  <>
-                    <h3 className="text-2xl font-bold text-sonix-primary mb-1">
-                      {platformStats?.totalUsers?.toLocaleString() || "0"}
-                    </h3>
-                    <p className="text-sm font-medium text-sonix-secondary">Total Users</p>
-                    <p className="text-xs text-sonix-secondary mt-1">Registered accounts</p>
-                  </>
+                  <div className="glassmorphism-empty-state">
+                    <div className="glassmorphism-empty-icon">
+                      <Music className="w-8 h-8 text-purple-400" />
+                    </div>
+                    <p className="glassmorphism-empty-text">No recent uploads</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Platform Stats */}
+            <div className="glassmorphism-activity-card">
+              <div className="glassmorphism-activity-header">
+                <div>
+                  <h3 className="glassmorphism-activity-title">Platform Stats</h3>
+                  <p className="glassmorphism-activity-subtitle">Key metrics overview</p>
+                </div>
+                <Badge className="glassmorphism-live-badge">
+                  <Zap className="w-3 h-3 mr-1" />
+                  Live Data from Supabase
+                </Badge>
+              </div>
+              
+              <div className="glassmorphism-activity-content">
+                {statsLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="glassmorphism-loading-stat">
+                        <div className="space-y-2 flex-1">
+                          <div className="glassmorphism-loading-line w-1/3" />
+                          <div className="glassmorphism-loading-line w-1/4 h-8" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="glassmorphism-loading-line w-20" />
+                          <div className="glassmorphism-loading-line w-16" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : platformStats ? (
+                  <div className="space-y-4">
+                    <div className="glassmorphism-stat-item group">
+                      <div>
+                        <div className="glassmorphism-stat-label">Total Tracks</div>
+                        <div className="glassmorphism-stat-value">
+                          {platformStats.totalTracks.toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="glassmorphism-stat-change">
+                        <div className="glassmorphism-stat-growth">+{Math.floor(platformStats.totalTracks * 0.1)} this week</div>
+                        <div className="glassmorphism-stat-percentage">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          8.2%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="glassmorphism-stat-item group">
+                      <div>
+                        <div className="glassmorphism-stat-label">Verified Artists</div>
+                        <div className="glassmorphism-stat-value">
+                          {platformStats.totalArtists.toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="glassmorphism-stat-change">
+                        <div className="glassmorphism-stat-growth">+{Math.floor(platformStats.totalArtists * 0.05)} this week</div>
+                        <div className="glassmorphism-stat-percentage">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          12.1%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="glassmorphism-stat-item group">
+                      <div>
+                        <div className="glassmorphism-stat-label">Total Plays</div>
+                        <div className="glassmorphism-stat-value">
+                          {(platformStats.totalPlays / 1000000).toFixed(1)}M
+                        </div>
+                      </div>
+                      <div className="glassmorphism-stat-change">
+                        <div className="glassmorphism-stat-growth">+{(platformStats.totalPlays * 0.15 / 1000000).toFixed(1)}M this month</div>
+                        <div className="glassmorphism-stat-percentage">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          15.4%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glassmorphism-empty-state">
+                    <div className="glassmorphism-empty-icon">
+                      <TrendingUp className="w-8 h-8 text-purple-400" />
+                    </div>
+                    <p className="glassmorphism-empty-text">No stats available</p>
+                  </div>
                 )}
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="sonix-card">
-            <div className="pb-6">
-              <h3 className="text-xl font-bold text-sonix-primary mb-2">Recent Uploads</h3>
-              <p className="text-sonix-secondary font-medium">Latest music added to the platform</p>
-              <Badge className="mt-2 bg-sonix-green text-white text-xs">
-                🎯 Live Data from Supabase
-              </Badge>
-            </div>
-            
-            {tracksLoading ? (
-              <div className="space-y-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="flex items-center space-x-3 p-3 bg-sonix-hover rounded-xl border border-sonix/50 animate-pulse">
-                    <div className="w-10 h-10 bg-sonix-tag rounded-lg" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-sonix-tag rounded w-3/4" />
-                      <div className="h-3 bg-sonix-tag rounded w-1/2" />
-                    </div>
-                    <div className="w-12 h-5 bg-sonix-tag rounded" />
-                  </div>
-                ))}
-              </div>
-            ) : recentTracks && recentTracks.length > 0 ? (
-              <div className="space-y-4">
-                {recentTracks.map((track) => (
-                  <div key={track.id} className="flex items-center justify-between p-3 bg-sonix-hover rounded-xl border border-sonix/50">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-sonix-tag rounded-lg flex items-center justify-center">
-                        <Music className="w-4 h-4 text-sonix-secondary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sonix-primary">{track.title}</p>
-                        <p className="text-sm text-sonix-secondary">
-                          by {track.artist?.name || 'Unknown Artist'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="sonix-tag text-xs">
-                        {track.album_id ? 'Album' : 'Single'}
-                      </div>
-                      <p className="text-xs text-sonix-secondary mt-1">
-                        {new Date(track.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Music className="w-8 h-8 text-sonix-secondary mx-auto mb-2" />
-                <p className="text-sonix-secondary">No recent uploads</p>
-              </div>
-            )}
-          </div>
-
-          <div className="sonix-card">
-            <div className="pb-6">
-              <h3 className="text-xl font-bold text-sonix-primary mb-2">Platform Stats</h3>
-              <p className="text-sonix-secondary font-medium">Key metrics overview</p>
-              <Badge className="mt-2 bg-sonix-green text-white text-xs">
-                🎯 Live Data from Supabase
-              </Badge>
-            </div>
-            
-            {statsLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-sonix-hover rounded-xl border border-sonix/50 animate-pulse">
-                    <div className="space-y-2 flex-1">
-                      <div className="h-4 bg-sonix-tag rounded w-1/3" />
-                      <div className="h-6 bg-sonix-tag rounded w-1/4" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-sonix-tag rounded w-16" />
-                      <div className="h-3 bg-sonix-tag rounded w-12" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : platformStats ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-sonix-hover rounded-xl border border-sonix/50">
-                  <div>
-                    <div className="font-semibold text-sonix-primary">Total Tracks</div>
-                    <div className="text-2xl font-bold text-sonix-primary">
-                      {platformStats.totalTracks.toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-sonix-green">+{Math.floor(platformStats.totalTracks * 0.1)} this week</div>
-                    <div className="text-xs text-sonix-secondary">↑ 8.2%</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 bg-sonix-hover rounded-xl border border-sonix/50">
-                  <div>
-                    <div className="font-semibold text-sonix-primary">Verified Artists</div>
-                    <div className="text-2xl font-bold text-sonix-primary">
-                      {platformStats.totalArtists.toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-sonix-green">+{Math.floor(platformStats.totalArtists * 0.05)} this week</div>
-                    <div className="text-xs text-sonix-secondary">↑ 12.1%</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 bg-sonix-hover rounded-xl border border-sonix/50">
-                  <div>
-                    <div className="font-semibold text-sonix-primary">Total Plays</div>
-                    <div className="text-2xl font-bold text-sonix-primary">
-                      {(platformStats.totalPlays / 1000000).toFixed(1)}M
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-sonix-green">+{(platformStats.totalPlays * 0.15 / 1000000).toFixed(1)}M this month</div>
-                    <div className="text-xs text-sonix-secondary">↑ 15.4%</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <TrendingUp className="w-8 h-8 text-sonix-secondary mx-auto mb-2" />
-                <p className="text-sonix-secondary">No stats available</p>
-              </div>
-            )}
-          </div>
-        </div>
+        </section>
       </main>
     </>
   );
