@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Music } from "lucide-react";
 import { Input } from "../ui/input";
 import { useAuth } from "../../utils/auth/AuthContext";
@@ -7,6 +7,8 @@ import { useAuth } from "../../utils/auth/AuthContext";
 export function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from?.pathname || "/";
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +25,7 @@ export function LoginPage() {
     try {
       await signIn(email, password);
       setSuccess("Authentication successful! Redirecting...");
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     } catch (error: any) {
       setError(error.message || "Login failed. Please check your credentials and try again.");
       console.error("Login error:", error);
