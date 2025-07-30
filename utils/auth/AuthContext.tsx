@@ -26,8 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Fetch the role for the given user from the users table
-  const getUserRole = async (userId: string) => {
+  // check admin flag from profiles table
+  const fetchAdminStatus = async (userId: string) => {
     const { data, error } = await supabase
       .from('users')
       .select('role')
@@ -43,14 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setLoading(true);
+    let mounted = true;
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 6000);
 
-      if (session?.user) {
-        const role = await getUserRole(session.user.id);
-        setIsAdmin(role === 'admin');
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setSession(data.session);
+      if (data.session?.user) {
+        setIsAdmin(await fetchAdminStatus(data.session.user.id));
       }
 
       setLoading(false);
@@ -58,13 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        getUserRole(session.user.id).then((role) => {
-          setIsAdmin(role === 'admin');
-          setLoading(false);
-        });
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_evt, sess) => {
+      if (!mounted) return;
+      setSession(sess);
+      if (sess?.user) {
+        setIsAdmin(await fetchAdminStatus(sess.user.id));
       } else {
         setIsAdmin(false);
         setLoading(false);
@@ -83,8 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setSession(data.session);
     if (data.session?.user) {
-      const role = await getUserRole(data.session.user.id);
-      setIsAdmin(role === 'admin');
+      setIsAdmin(await fetchAdminStatus(data.session.user.id));
     }
     setLoading(false);
   };
