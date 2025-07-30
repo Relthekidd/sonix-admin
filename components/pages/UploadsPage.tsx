@@ -3,99 +3,22 @@ import { Search, Filter, Download, Music, Clock, CheckCircle, XCircle, AlertCirc
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useTracks } from "../../utils/supabase/hooks";
+import { Skeleton } from "../ui/skeleton";
 
-const uploads = [
-  {
-    id: 1,
-    title: "Midnight Dreams",
-    artist: "Luna Rodriguez",
-    album: "Nocturnal",
-    uploadDate: "2024-01-15",
-    status: "published",
-    duration: "3:42",
-    fileSize: "8.4 MB",
-    format: "MP3",
-    plays: "12.5K",
-    quality: "320kbps"
-  },
-  {
-    id: 2,
-    title: "Electric Soul",
-    artist: "The Midnight Echo",
-    album: "Synthetic",
-    uploadDate: "2024-01-14",
-    status: "processing",
-    duration: "4:18",
-    fileSize: "12.1 MB",
-    format: "FLAC",
-    plays: "0",
-    quality: "Lossless"
-  },
-  {
-    id: 3,
-    title: "Broken Strings",
-    artist: "Maya Chen",
-    album: "Raw Emotions",
-    uploadDate: "2024-01-14",
-    status: "failed",
-    duration: "2:56",
-    fileSize: "6.8 MB",
-    format: "MP3",
-    plays: "0",
-    quality: "256kbps"
-  },
-  {
-    id: 4,
-    title: "Urban Legends",
-    artist: "Alex Thompson",
-    album: "Street Stories",
-    uploadDate: "2024-01-13",
-    status: "published",
-    duration: "3:29",
-    fileSize: "9.2 MB",
-    format: "MP3",
-    plays: "24.1K",
-    quality: "320kbps"
-  },
-  {
-    id: 5,
-    title: "Velvet Nights",
-    artist: "Sophia Kim",
-    album: "Smooth Operator",
-    uploadDate: "2024-01-12",
-    status: "published",
-    duration: "4:05",
-    fileSize: "11.3 MB",
-    format: "FLAC",
-    plays: "18.7K",
-    quality: "Lossless"
-  },
-  {
-    id: 6,
-    title: "Mountain Song",
-    artist: "River Stone",
-    album: "Nature's Call",
-    uploadDate: "2024-01-11",
-    status: "pending",
-    duration: "5:12",
-    fileSize: "14.8 MB",
-    format: "WAV",
-    plays: "0",
-    quality: "Lossless"
-  },
-];
 
 const statusOptions = ["All", "Published", "Processing", "Pending", "Failed"];
 
 export function UploadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const { data: uploads, loading } = useTracks();
 
-  const filteredUploads = uploads.filter(upload => {
-    const matchesSearch = 
-      upload.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      upload.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      upload.album.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUploads = (uploads || []).filter(upload => {
+    const matchesSearch =
+      upload.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      upload.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      upload.album?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "All" || upload.status === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
@@ -132,9 +55,9 @@ export function UploadsPage() {
   };
 
   return (
-    <>
+    <div className="container fade-in space-y-8">
       {/* Header */}
-      <header className="bg-dark-bg border-b border-dark-color px-8 py-6">
+      <header className="bg-dark-bg border-b border-dark-color px-8 py-6 rounded-xl shadow">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-dark-primary">Uploads</h1>
@@ -147,7 +70,7 @@ export function UploadsPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-dark-bg">
+      <main className="flex-1 overflow-auto p-8 bg-dark-bg rounded-xl shadow">
         {/* Search and Filters */}
         <div className="mb-8 flex items-center space-x-4">
           <div className="relative flex-1 max-w-md">
@@ -191,7 +114,14 @@ export function UploadsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUploads.map((upload) => (
+                {loading && (
+                  <tr>
+                    <td colSpan={8} className="p-4">
+                      <Skeleton className="h-32 w-full" />
+                    </td>
+                  </tr>
+                )}
+                {!loading && filteredUploads.map((upload) => (
                   <tr key={upload.id} className="border-b border-dark-color hover:bg-dark-table-hover transition-colors">
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-3">
@@ -265,6 +195,6 @@ export function UploadsPage() {
           </div>
         </div>
       </main>
-    </>
+    </div>
   );
 }

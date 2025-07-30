@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { 
   Upload, 
@@ -90,6 +91,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     loading: boolean;
   };
   const { data: verificationRequests, loading: requestsLoading } = useVerificationRequests();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
@@ -100,12 +102,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     if (onNavigate) {
       onNavigate(page);
     }
+    navigate(`/${page.toLowerCase()}`);
   };
 
   const handleVerificationClick = () => {
     if (onNavigate) {
       onNavigate("Verify Artists");
     }
+    navigate("/verify-artists");
   };
 
   if (isLoading) {

@@ -3,82 +3,17 @@ import { Search, Plus, MoreHorizontal, Star, Users, Music, TrendingUp } from "lu
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useArtists } from "../../utils/supabase/hooks";
+import { Skeleton } from "../ui/skeleton";
 
-const artists = [
-  {
-    id: 1,
-    name: "Luna Rodriguez",
-    genre: "Pop",
-    tracks: 24,
-    followers: "125K",
-    monthlyStreams: "2.1M",
-    status: "verified",
-    avatar: "LR",
-    growth: "+12%"
-  },
-  {
-    id: 2,
-    name: "The Midnight Echo",
-    genre: "Electronic",
-    tracks: 18,
-    followers: "89K",
-    monthlyStreams: "1.8M",
-    status: "verified",
-    avatar: "TME",
-    growth: "+8%"
-  },
-  {
-    id: 3,
-    name: "Maya Chen",
-    genre: "Indie Rock",
-    tracks: 31,
-    followers: "67K",
-    monthlyStreams: "1.2M",
-    status: "pending",
-    avatar: "MC",
-    growth: "+15%"
-  },
-  {
-    id: 4,
-    name: "Alex Thompson",
-    genre: "Hip-Hop",
-    tracks: 42,
-    followers: "203K",
-    monthlyStreams: "3.4M",
-    status: "verified",
-    avatar: "AT",
-    growth: "+5%"
-  },
-  {
-    id: 5,
-    name: "Sophia Kim",
-    genre: "R&B",
-    tracks: 16,
-    followers: "91K",
-    monthlyStreams: "1.5M",
-    status: "verified",
-    avatar: "SK",
-    growth: "+18%"
-  },
-  {
-    id: 6,
-    name: "River Stone",
-    genre: "Folk",
-    tracks: 28,
-    followers: "45K",
-    monthlyStreams: "890K",
-    status: "pending",
-    avatar: "RS",
-    growth: "+22%"
-  },
-];
 
 export function ArtistsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { data: artists, loading } = useArtists();
 
-  const filteredArtists = artists.filter(artist =>
-    artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    artist.genre.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredArtists = (artists || []).filter(artist =>
+    artist.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    artist.genre?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusBadge = (status: string) => {
@@ -99,9 +34,9 @@ export function ArtistsPage() {
   };
 
   return (
-    <>
+    <div className="container fade-in space-y-8">
       {/* Header */}
-      <header className="bg-dark-bg border-b border-dark-color px-8 py-6">
+      <header className="bg-dark-bg border-b border-dark-color px-8 py-6 rounded-xl shadow">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-dark-primary">Artists</h1>
@@ -114,7 +49,7 @@ export function ArtistsPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-dark-bg">
+      <main className="flex-1 overflow-auto p-8 bg-dark-bg rounded-xl shadow">
         {/* Search and Filters */}
         <div className="mb-8">
           <div className="relative max-w-md">
@@ -130,7 +65,14 @@ export function ArtistsPage() {
 
         {/* Artists Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredArtists.map((artist) => (
+          {loading && (
+            <>
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-40 rounded-xl" />
+              ))}
+            </>
+          )}
+          {!loading && filteredArtists.map((artist) => (
             <div key={artist.id} className="dark-card hover:dark-shadow-lg transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
@@ -207,6 +149,6 @@ export function ArtistsPage() {
           ))}
         </div>
       </main>
-    </>
+    </div>
   );
 }

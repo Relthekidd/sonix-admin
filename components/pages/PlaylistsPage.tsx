@@ -2,83 +2,18 @@ import { useState } from "react";
 import { Search, Plus, Music, Clock, Users, MoreHorizontal, Heart, Play } from "lucide-react";
 import { Input } from "../ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { usePlaylists } from "../../utils/supabase/hooks";
+import { Skeleton } from "../ui/skeleton";
 
-const playlists = [
-  {
-    id: 1,
-    name: "Today's Hits",
-    description: "The biggest songs right now",
-    tracks: 50,
-    duration: "3h 12m",
-    likes: "24.5K",
-    curator: "StreamVibe Editorial",
-    cover: "🔥",
-    category: "Featured"
-  },
-  {
-    id: 2,
-    name: "Chill Vibes",
-    description: "Relaxing tunes for any moment",
-    tracks: 32,
-    duration: "2h 18m",
-    likes: "18.2K",
-    curator: "StreamVibe Editorial",
-    cover: "🌙",
-    category: "Mood"
-  },
-  {
-    id: 3,
-    name: "Workout Energy",
-    description: "High-energy tracks to keep you moving",
-    tracks: 45,
-    duration: "2h 56m",
-    likes: "31.7K",
-    curator: "Fitness Team",
-    cover: "⚡",
-    category: "Activity"
-  },
-  {
-    id: 4,
-    name: "Indie Discoveries",
-    description: "Fresh indie tracks you need to hear",
-    tracks: 28,
-    duration: "1h 52m",
-    likes: "12.8K",
-    curator: "Music Discovery",
-    cover: "🎸",
-    category: "Genre"
-  },
-  {
-    id: 5,
-    name: "Jazz Classics",
-    description: "Timeless jazz standards",
-    tracks: 37,
-    duration: "3h 24m",
-    likes: "9.4K",
-    curator: "Jazz Lovers",
-    cover: "🎷",
-    category: "Genre"
-  },
-  {
-    id: 6,
-    name: "Study Focus",
-    description: "Instrumental tracks for concentration",
-    tracks: 60,
-    duration: "4h 15m",
-    likes: "22.1K",
-    curator: "Productivity Team",
-    cover: "📚",
-    category: "Activity"
-  },
-];
 
 const categories = ["All", "Featured", "Mood", "Activity", "Genre"];
 
 export function PlaylistsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const { data: playlists, loading } = usePlaylists();
 
-  const filteredPlaylists = playlists.filter(playlist => {
+  const filteredPlaylists = (playlists || []).filter(playlist => {
     const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          playlist.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "All" || playlist.category === selectedCategory;
@@ -86,9 +21,9 @@ export function PlaylistsPage() {
   });
 
   return (
-    <>
+    <div className="container fade-in space-y-8">
       {/* Header */}
-      <header className="bg-dark-bg border-b border-dark-color px-8 py-6">
+      <header className="bg-dark-bg border-b border-dark-color px-8 py-6 rounded-xl shadow">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-dark-primary">Playlists</h1>
@@ -101,7 +36,7 @@ export function PlaylistsPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-8 bg-dark-bg">
+      <main className="flex-1 overflow-auto p-8 bg-dark-bg rounded-xl shadow">
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
           <div className="relative max-w-md">
@@ -134,7 +69,12 @@ export function PlaylistsPage() {
 
         {/* Playlists Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlaylists.map((playlist) => (
+          {loading && (
+            [...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-64 rounded-xl" />
+            ))
+          )}
+          {!loading && filteredPlaylists.map((playlist) => (
             <div key={playlist.id} className="dark-card hover:dark-shadow-lg transition-all duration-300 hover:-translate-y-1 group">
               <div className="relative mb-4">
                 <div className="w-full h-48 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl flex items-center justify-center relative overflow-hidden">
@@ -211,6 +151,6 @@ export function PlaylistsPage() {
           ))}
         </div>
       </main>
-    </>
+    </div>
   );
 }
