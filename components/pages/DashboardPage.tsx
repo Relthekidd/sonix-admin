@@ -68,7 +68,7 @@ const quickAccessCards = [
   }
 ];
 
-export function EnhancedDashboardPage() {
+export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { data: recentTracks, loading: tracksLoading } = useRecentTracks(4);
   const { stats: platformStats, loading: statsLoading } = usePlatformStats() as {
