@@ -1,0 +1,312 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  
+  /* Sonix Color Palette */
+  --sonix-black: #0E0E10;
+  --sonix-dark-card: #1A1A1D;
+  --sonix-primary-text: #FFFFFF;
+  --sonix-secondary-text: #A1A1AA;
+  --sonix-electric-purple: #8B5CF6;
+  --sonix-neon-green: #10B981;
+  --sonix-error-red: #EF4444;
+  --sonix-tag: #27272A;
+  --sonix-hover: #2A2A2D;
+  --sonix-table-hover: #1F1F23;
+  --sonix-border: #3F3F46;
+  
+  /* Updated theme variables for Sonix */
+  --background: #0E0E10;
+  --foreground: #FFFFFF;
+  --card: #1A1A1D;
+  --card-foreground: #FFFFFF;
+  --popover: #1A1A1D;
+  --popover-foreground: #FFFFFF;
+  --primary: #8B5CF6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #27272A;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A1A1D;
+  --muted-foreground: #A1A1AA;
+  --accent: #8B5CF6;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #3F3F46;
+  --input: #1A1A1D;
+  --input-background: #1A1A1D;
+  --switch-background: #3F3F46;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --ring: #8B5CF6;
+  
+  /* Chart colors using Sonix theme */
+  --chart-1: #8B5CF6;
+  --chart-2: #10B981;
+  --chart-3: #A1A1AA;
+  --chart-4: #F59E0B;
+  --chart-5: #EF4444;
+  
+  --radius: 0.75rem;
+  
+  /* Sidebar colors for Sonix theme */
+  --sidebar: #0E0E10;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #FFFFFF;
+  --sidebar-primary-foreground: #0E0E10;
+  --sidebar-accent: #8B5CF6;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #3F3F46;
+  --sidebar-ring: #8B5CF6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Sonix theme specific colors */
+  --color-sonix-black: var(--sonix-black);
+  --color-sonix-card: var(--sonix-dark-card);
+  --color-sonix-primary-text: var(--sonix-primary-text);
+  --color-sonix-secondary-text: var(--sonix-secondary-text);
+  --color-sonix-electric-purple: var(--sonix-electric-purple);
+  --color-sonix-neon-green: var(--sonix-neon-green);
+  --color-sonix-error-red: var(--sonix-error-red);
+  --color-sonix-tag: var(--sonix-tag);
+  --color-sonix-hover: var(--sonix-hover);
+  --color-sonix-table-hover: var(--sonix-table-hover);
+  --color-sonix-border: var(--sonix-border);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+  }
+}
+
+/**
+ * Base typography with Sonix theme styling
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--sonix-primary-text);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--sonix-primary-text);
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--sonix-primary-text);
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--sonix-primary-text);
+    }
+
+    p {
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--sonix-secondary-text);
+    }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--sonix-primary-text);
+    }
+
+    button {
+      font-size: 0.875rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    input {
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Sonix theme utility classes */
+@layer utilities {
+  /* Text colors */
+  .text-sonix-primary { color: var(--color-sonix-primary-text); }
+  .text-sonix-secondary { color: var(--color-sonix-secondary-text); }
+  .text-sonix-purple { color: var(--color-sonix-electric-purple); }
+  .text-sonix-green { color: var(--color-sonix-neon-green); }
+  .text-sonix-error { color: var(--color-sonix-error-red); }
+  
+  /* Background colors */
+  .bg-sonix-black { background-color: var(--color-sonix-black); }
+  .bg-sonix-card { background-color: var(--color-sonix-card); }
+  .bg-sonix-tag { background-color: var(--color-sonix-tag); }
+  .bg-sonix-hover { background-color: var(--color-sonix-hover); }
+  .bg-sonix-table-hover { background-color: var(--color-sonix-table-hover); }
+  
+  /* Border colors */
+  .border-sonix { border-color: var(--color-sonix-border); }
+}
+
+/* Enhanced component styling for Sonix theme */
+@layer components {
+  .sonix-card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-sonix-border);
+    padding: 1.5rem;
+    background-color: var(--color-sonix-card);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 4px 20px;
+  }
+  
+  .sonix-button-primary {
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    color: #FFFFFF;
+    background: linear-gradient(135deg, var(--color-sonix-electric-purple), #A855F7);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .sonix-button-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+  }
+  
+  .sonix-button-secondary {
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    background-color: transparent;
+    color: var(--color-sonix-electric-purple);
+    border: 1px solid var(--color-sonix-electric-purple);
+  }
+  
+  .sonix-button-secondary:hover {
+    background-color: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+  }
+  
+  .sonix-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: var(--color-sonix-secondary-text);
+  }
+  
+  .sonix-nav-item-active {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+    color: var(--color-sonix-primary-text);
+    border: 1px solid var(--color-sonix-electric-purple);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+  }
+  
+  .sonix-nav-item:hover {
+    background-color: var(--color-sonix-hover);
+    color: var(--color-sonix-primary-text);
+  }
+
+  .sonix-shadow {
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 4px 20px;
+  }
+  
+  .sonix-shadow-lg {
+    box-shadow: rgba(0, 0, 0, 0.7) 0px 8px 32px;
+  }
+  
+  .sonix-tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #FFFFFF;
+    background-color: var(--color-sonix-tag);
+  }
+  
+  .sonix-success {
+    color: var(--color-sonix-neon-green);
+  }
+  
+  .sonix-error {
+    color: var(--color-sonix-error-red);
+  }
+
+  .sonix-glow {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  }
+
+  .sonix-green-glow {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  }
+}
