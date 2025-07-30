@@ -16,9 +16,18 @@ import {
   BarChart3,
   ArrowRight,
   Zap,
-  Activity
+  Activity,
+  Eye,
+  Headphones,
+  Plus,
+  AlertCircle
 } from "lucide-react";
 import { useRecentTracks, usePlatformStats, useVerificationRequests } from "../../utils/supabase/hooks";
+
+// Define the prop interface
+interface DashboardPageProps {
+  onNavigate?: (page: string) => void;
+}
 
 const quickAccessCards = [
   {
@@ -28,7 +37,8 @@ const quickAccessCards = [
     iconColor: "text-purple-400",
     bgGradient: "from-purple-600/20 to-violet-600/20",
     borderColor: "border-purple-500/30",
-    href: "/upload"
+    page: "Upload",
+    glowColor: "shadow-purple-500/25"
   },
   {
     title: "Manage Artists", 
@@ -37,7 +47,8 @@ const quickAccessCards = [
     iconColor: "text-emerald-400",
     bgGradient: "from-emerald-600/20 to-teal-600/20",
     borderColor: "border-emerald-500/30",
-    href: "/artists"
+    page: "Artists",
+    glowColor: "shadow-emerald-500/25"
   },
   {
     title: "Platform Users",
@@ -46,7 +57,8 @@ const quickAccessCards = [
     iconColor: "text-blue-400",
     bgGradient: "from-blue-600/20 to-indigo-600/20",
     borderColor: "border-blue-500/30",
-    href: "/users"
+    page: "Users",
+    glowColor: "shadow-blue-500/25"
   },
   {
     title: "Content Library",
@@ -55,7 +67,8 @@ const quickAccessCards = [
     iconColor: "text-orange-400",
     bgGradient: "from-orange-600/20 to-amber-600/20",
     borderColor: "border-orange-500/30",
-    href: "/uploads"
+    page: "Uploads",
+    glowColor: "shadow-orange-500/25"
   },
   {
     title: "Platform Analytics",
@@ -64,11 +77,12 @@ const quickAccessCards = [
     iconColor: "text-pink-400",
     bgGradient: "from-pink-600/20 to-rose-600/20",
     borderColor: "border-pink-500/30",
-    href: "/analytics"
+    page: "Analytics",
+    glowColor: "shadow-pink-500/25"
   }
 ];
 
-export function DashboardPage() {
+export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const { data: recentTracks, loading: tracksLoading } = useRecentTracks(4);
   const { stats: platformStats, loading: statsLoading } = usePlatformStats() as {
@@ -81,6 +95,18 @@ export function DashboardPage() {
     const timer = setTimeout(() => setIsLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleQuickAccess = (page: string) => {
+    if (onNavigate) {
+      onNavigate(page);
+    }
+  };
+
+  const handleVerificationClick = () => {
+    if (onNavigate) {
+      onNavigate("Verify Artists");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -112,13 +138,21 @@ export function DashboardPage() {
               Welcome back, Admin
             </h1>
             <p className="glassmorphism-subtitle">
-              Here's what's happening on Sonix today
+              Here's what's happening on Sonix today • {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
             </p>
           </div>
           <div className="glassmorphism-header-stats">
             <div className="glassmorphism-live-indicator">
               <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
               <span className="text-emerald-400 font-medium">Live</span>
+            </div>
+            <div className="text-sm text-slate-400">
+              {new Date().toLocaleTimeString()}
             </div>
           </div>
         </div>
@@ -139,20 +173,21 @@ export function DashboardPage() {
                 return (
                   <button
                     key={card.title}
-                    className="glassmorphism-quick-card group"
+                    onClick={() => handleQuickAccess(card.page)}
+                    className={`glassmorphism-quick-card group min-w-[280px] hover:${card.glowColor}`}
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="glassmorphism-quick-card-header">
-                      <div className={`glassmorphism-quick-icon bg-gradient-to-br ${card.bgGradient} border ${card.borderColor}`}>
-                        <Icon className={`w-8 h-8 ${card.iconColor} group-hover:scale-110 transition-transform duration-300`} />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${card.bgGradient} border ${card.borderColor} flex items-center justify-center backdrop-blur-sm`}>
+                        <Icon className={`w-7 h-7 ${card.iconColor} group-hover:scale-110 transition-transform duration-300`} />
                       </div>
                       <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-purple-400 group-hover:translate-x-1 transition-all duration-300" />
                     </div>
-                    <div className="glassmorphism-quick-card-content">
-                      <h3 className="glassmorphism-quick-card-title">
+                    <div className="text-left">
+                      <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors">
                         {card.title}
                       </h3>
-                      <p className="glassmorphism-quick-card-description">
+                      <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
                         {card.description}
                       </p>
                     </div>
@@ -172,35 +207,38 @@ export function DashboardPage() {
           
           <div className="glassmorphism-status-grid">
             {/* Upload Queue */}
-            <div className="glassmorphism-status-card group">
-              <div className="glassmorphism-status-header">
-                <div className="glassmorphism-status-icon bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-blue-500/30">
+            <div className="glassmorphism-status-card group hover:shadow-blue-500/25">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-blue-500/30 flex items-center justify-center backdrop-blur-sm">
                   <Clock className="w-6 h-6 text-blue-400" />
                 </div>
-                <div className="glassmorphism-status-indicator">
+                <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
-                  <span className="text-xs font-semibold text-emerald-400">ACTIVE</span>
+                  <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">ACTIVE</span>
                 </div>
               </div>
-              <div className="glassmorphism-status-content">
-                <h3 className="glassmorphism-status-number">3</h3>
-                <p className="glassmorphism-status-label">Upload Queue</p>
-                <p className="glassmorphism-status-sublabel">Files processing</p>
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-1">3</h3>
+                <p className="text-sm font-medium text-slate-300 mb-1">Upload Queue</p>
+                <p className="text-xs text-slate-500">Files processing</p>
               </div>
             </div>
 
             {/* Verification Requests */}
-            <div className="glassmorphism-status-card group">
-              <div className="glassmorphism-status-header">
-                <div className="glassmorphism-status-icon bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-yellow-500/30">
+            <div 
+              className="glassmorphism-status-card group hover:shadow-yellow-500/25 cursor-pointer"
+              onClick={handleVerificationClick}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-yellow-500/30 flex items-center justify-center backdrop-blur-sm">
                   <Star className="w-6 h-6 text-yellow-400" />
                 </div>
-                <div className="glassmorphism-status-indicator">
+                <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shadow-lg shadow-yellow-400/50" />
-                  <span className="text-xs font-semibold text-yellow-400">PENDING</span>
+                  <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wide">PENDING</span>
                 </div>
               </div>
-              <div className="glassmorphism-status-content">
+              <div>
                 {requestsLoading ? (
                   <div className="flex items-center space-x-2">
                     <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
@@ -208,31 +246,44 @@ export function DashboardPage() {
                   </div>
                 ) : (
                   <>
-                    <h3 className="glassmorphism-status-number">
+                    <h3 className="text-3xl font-bold text-white mb-1">
                       {verificationRequests?.length || 0}
                     </h3>
-                    <p className="glassmorphism-status-label">Verification Requests</p>
-                    <p className="glassmorphism-status-sublabel">Artists pending approval</p>
+                    <p className="text-sm font-medium text-slate-300 mb-1">Verification Requests</p>
+                    <p className="text-xs text-slate-500">
+                      {verificationRequests?.length ? 'Artists pending approval' : 'No pending requests'}
+                    </p>
                   </>
                 )}
               </div>
+              <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-yellow-400 group-hover:translate-x-1 transition-all duration-300 mt-2 ml-auto" />
             </div>
 
             {/* Today's Top Track */}
-            <div className="glassmorphism-status-card glassmorphism-featured-card group">
-              <div className="glassmorphism-status-header">
-                <div className="glassmorphism-status-icon bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30">
+            <div className="glassmorphism-status-card glassmorphism-featured-card group hover:shadow-emerald-500/25 col-span-full md:col-span-1">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 flex items-center justify-center backdrop-blur-sm">
                   <PlayCircle className="w-6 h-6 text-emerald-400" />
                 </div>
-                <div className="glassmorphism-status-indicator">
+                <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
-                  <span className="text-xs font-semibold text-emerald-400">TRENDING</span>
+                  <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">TRENDING</span>
                 </div>
               </div>
-              <div className="glassmorphism-status-content">
-                <h3 className="glassmorphism-featured-title">Midnight Dreams</h3>
-                <p className="glassmorphism-status-label">Today's Top Track</p>
-                <p className="glassmorphism-status-sublabel">by Luna Rodriguez • 47.2K plays • +12% from yesterday</p>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1">Midnight Dreams</h3>
+                <p className="text-sm font-medium text-slate-300 mb-1">Today's Top Track</p>
+                <div className="flex items-center gap-4 text-xs text-slate-500">
+                  <span>by Luna Rodriguez</span>
+                  <div className="flex items-center gap-1">
+                    <Headphones className="w-3 h-3" />
+                    <span>47.2K plays</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-emerald-400">
+                    <TrendingUp className="w-3 h-3" />
+                    <span>+12%</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -248,9 +299,9 @@ export function DashboardPage() {
                   <h3 className="glassmorphism-activity-title">Recent Uploads</h3>
                   <p className="glassmorphism-activity-subtitle">Latest music added to the platform</p>
                 </div>
-                <Badge className="glassmorphism-live-badge">
+                <Badge className="glassmorphism-live-badge px-3 py-1 text-xs">
                   <Zap className="w-3 h-3 mr-1" />
-                  Live Data from Supabase
+                  Live Data
                 </Badge>
               </div>
               
@@ -258,13 +309,13 @@ export function DashboardPage() {
                 {tracksLoading ? (
                   <div className="space-y-4">
                     {[...Array(4)].map((_, i) => (
-                      <div key={i} className="glassmorphism-loading-item">
-                        <div className="glassmorphism-loading-avatar" />
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse">
+                        <div className="w-10 h-10 bg-slate-700 rounded-lg" />
                         <div className="flex-1 space-y-2">
-                          <div className="glassmorphism-loading-line w-3/4" />
-                          <div className="glassmorphism-loading-line w-1/2" />
+                          <div className="h-4 bg-slate-700 rounded w-3/4" />
+                          <div className="h-3 bg-slate-700 rounded w-1/2" />
                         </div>
-                        <div className="glassmorphism-loading-badge" />
+                        <div className="w-16 h-6 bg-slate-700 rounded" />
                       </div>
                     ))}
                   </div>
@@ -273,20 +324,24 @@ export function DashboardPage() {
                     {recentTracks.map((track, index) => (
                       <div 
                         key={track.id} 
-                        className="glassmorphism-track-item"
+                        className="glassmorphism-track-item group"
                         style={{ animationDelay: `${index * 100}ms` }}
                       >
-                        <div className="glassmorphism-track-icon">
+                        <div className="glassmorphism-track-icon group-hover:bg-purple-600/30 transition-colors">
                           <Music className="w-5 h-5 text-purple-400" />
                         </div>
                         <div className="flex-1">
-                          <p className="glassmorphism-track-title">{track.title}</p>
+                          <p className="glassmorphism-track-title group-hover:text-purple-300 transition-colors">
+                            {track.title}
+                          </p>
                           <p className="glassmorphism-track-artist">
                             by {track.artist?.name || 'Unknown Artist'}
                           </p>
                         </div>
                         <div className="glassmorphism-track-meta">
-                          <div className="glassmorphism-track-badge">
+                          <div className={`glassmorphism-track-badge ${
+                            track.album_id ? 'bg-blue-600/20 text-blue-400' : 'bg-purple-600/20 text-purple-400'
+                          }`}>
                             {track.album_id ? 'Album' : 'Single'}
                           </div>
                           <p className="glassmorphism-track-date">
@@ -299,9 +354,16 @@ export function DashboardPage() {
                 ) : (
                   <div className="glassmorphism-empty-state">
                     <div className="glassmorphism-empty-icon">
-                      <Music className="w-8 h-8 text-purple-400" />
+                      <Music className="w-12 h-12 text-slate-600" />
                     </div>
-                    <p className="glassmorphism-empty-text">No recent uploads</p>
+                    <p className="glassmorphism-empty-text text-slate-500">No recent uploads</p>
+                    <button 
+                      onClick={() => handleQuickAccess("Upload")}
+                      className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-colors flex items-center gap-2 text-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Upload First Track
+                    </button>
                   </div>
                 )}
               </div>
@@ -311,27 +373,35 @@ export function DashboardPage() {
             <div className="glassmorphism-activity-card">
               <div className="glassmorphism-activity-header">
                 <div>
-                  <h3 className="glassmorphism-activity-title">Platform Stats</h3>
+                  <h3 className="glassmorphism-activity-title">Platform Analytics</h3>
                   <p className="glassmorphism-activity-subtitle">Key metrics overview</p>
                 </div>
-                <Badge className="glassmorphism-live-badge">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Live Data from Supabase
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className="glassmorphism-live-badge px-3 py-1 text-xs">
+                    <Zap className="w-3 h-3 mr-1" />
+                    Live Data
+                  </Badge>
+                  <button 
+                    onClick={() => handleQuickAccess("Analytics")}
+                    className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    <Eye className="w-4 h-4 text-slate-400 hover:text-purple-400" />
+                  </button>
+                </div>
               </div>
               
               <div className="glassmorphism-activity-content">
                 {statsLoading ? (
                   <div className="space-y-4">
                     {[...Array(3)].map((_, i) => (
-                      <div key={i} className="glassmorphism-loading-stat">
+                      <div key={i} className="flex items-center justify-between p-3 rounded-lg animate-pulse">
                         <div className="space-y-2 flex-1">
-                          <div className="glassmorphism-loading-line w-1/3" />
-                          <div className="glassmorphism-loading-line w-1/4 h-8" />
+                          <div className="h-3 bg-slate-700 rounded w-1/3" />
+                          <div className="h-8 bg-slate-700 rounded w-1/4" />
                         </div>
                         <div className="space-y-2">
-                          <div className="glassmorphism-loading-line w-20" />
-                          <div className="glassmorphism-loading-line w-16" />
+                          <div className="h-3 bg-slate-700 rounded w-20" />
+                          <div className="h-3 bg-slate-700 rounded w-16" />
                         </div>
                       </div>
                     ))}
@@ -341,7 +411,7 @@ export function DashboardPage() {
                     <div className="glassmorphism-stat-item group">
                       <div>
                         <div className="glassmorphism-stat-label">Total Tracks</div>
-                        <div className="glassmorphism-stat-value">
+                        <div className="glassmorphism-stat-value group-hover:text-purple-300 transition-colors">
                           {platformStats.totalTracks.toLocaleString()}
                         </div>
                       </div>
@@ -357,7 +427,7 @@ export function DashboardPage() {
                     <div className="glassmorphism-stat-item group">
                       <div>
                         <div className="glassmorphism-stat-label">Verified Artists</div>
-                        <div className="glassmorphism-stat-value">
+                        <div className="glassmorphism-stat-value group-hover:text-emerald-300 transition-colors">
                           {platformStats.totalArtists.toLocaleString()}
                         </div>
                       </div>
@@ -373,7 +443,7 @@ export function DashboardPage() {
                     <div className="glassmorphism-stat-item group">
                       <div>
                         <div className="glassmorphism-stat-label">Total Plays</div>
-                        <div className="glassmorphism-stat-value">
+                        <div className="glassmorphism-stat-value group-hover:text-blue-300 transition-colors">
                           {(platformStats.totalPlays / 1000000).toFixed(1)}M
                         </div>
                       </div>
@@ -389,9 +459,15 @@ export function DashboardPage() {
                 ) : (
                   <div className="glassmorphism-empty-state">
                     <div className="glassmorphism-empty-icon">
-                      <TrendingUp className="w-8 h-8 text-purple-400" />
+                      <AlertCircle className="w-12 h-12 text-slate-600" />
                     </div>
-                    <p className="glassmorphism-empty-text">No stats available</p>
+                    <p className="glassmorphism-empty-text text-slate-500">Unable to load stats</p>
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="mt-4 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition-colors text-sm"
+                    >
+                      Retry
+                    </button>
                   </div>
                 )}
               </div>
