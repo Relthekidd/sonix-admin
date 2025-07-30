@@ -14,6 +14,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { session, loading, isAdmin } = useAuth();
   const location = useLocation();
+  console.log('ProtectedRoute state', { loading, session, isAdmin });
 
   // Show loading spinner while checking authentication
   if (loading) {
