@@ -56,10 +56,19 @@ export function Dashboard() {
   // Show loading spinner while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-sonix-black flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="w-8 h-8 text-sonix-purple animate-spin" />
-          <p className="text-sonix-secondary">Loading Sonix Admin...</p>
+      <div className="glassmorphism-loading-screen">
+        <div className="glassmorphism-loading-container">
+          <div className="glassmorphism-loading-logo">
+            <span className="text-white font-bold text-3xl">🎵</span>
+            <div className="absolute inset-0 border-4 border-purple-400/30 rounded-3xl animate-ping" />
+          </div>
+          <div className="text-center mt-6">
+            <h2 className="text-2xl font-bold text-white mb-2">Loading Sonix Admin</h2>
+            <p className="text-slate-400">Preparing your dashboard...</p>
+            <div className="glassmorphism-loading-bar">
+              <div className="glassmorphism-loading-progress" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -90,15 +99,27 @@ export function Dashboard() {
       <button
         key={item.label}
         onClick={() => handleNavClick(item.label)}
-        className={`sonix-nav-item w-full text-left ${
-          isActive && !isLogout ? "sonix-nav-item-active" : ""
-        } ${isLogout ? "text-sonix-error hover:text-red-300" : ""}`}
+        className={`glassmorphism-nav-item w-full text-left ${
+          isActive && !isLogout ? "glassmorphism-nav-active" : ""
+        } ${isLogout ? "text-red-400 hover:text-red-300" : ""}`}
       >
-        <Icon className={`w-5 h-5 ${
-          isActive && !isLogout ? "text-sonix-primary" : 
-          isLogout ? "text-sonix-error" : "text-sonix-secondary"
-        }`} />
-        <span>{item.label}</span>
+        <div className={`glassmorphism-icon-container ${
+          isActive && !isLogout ? 'glassmorphism-icon-active' : ''
+        }`}>
+          <Icon className={`w-5 h-5 transition-all duration-300 ${
+            isActive && !isLogout ? 'text-purple-300 scale-110' : 
+            isLogout ? "text-red-400" : "text-slate-400 group-hover:text-purple-300"
+          }`} />
+        </div>
+        <span className={`font-medium transition-colors ${
+          isActive && !isLogout ? 'text-white font-semibold' : 
+          isLogout ? "text-red-400" : 'text-slate-300 hover:text-white'
+        }`}>
+          {item.label}
+        </span>
+        {isActive && !isLogout && (
+          <div className="ml-auto w-2 h-2 rounded-full bg-purple-400 animate-pulse shadow-lg shadow-purple-400/50" />
+        )}
       </button>
     );
   };
@@ -106,7 +127,6 @@ export function Dashboard() {
   const renderContent = () => {
     switch (activePage) {
       case "Dashboard":
-        // Pass onNavigate only if DashboardPage accepts it
         return <DashboardPage onNavigate={setActivePage} />;
       case "Upload":
         return <UploadPage />;
@@ -121,93 +141,94 @@ export function Dashboard() {
       case "Verify Artists":
         return <VerifyArtistsPage />;
       case "Analytics":
-        return <AnalyticsPage onNavigate={setActivePage} />;
+        // Remove onNavigate prop since AnalyticsPage doesn't accept it
+        return <AnalyticsPage />;
       default:
         return <DashboardPage onNavigate={setActivePage} />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-sonix-black" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {/* Enhanced Sidebar */}
-      <div className="w-60 sonix-sidebar flex flex-col">
+    <div className="flex h-screen bg-slate-950 overflow-hidden" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      {/* Enhanced Glassmorphism Sidebar */}
+      <div className="w-60 glassmorphism-sidebar flex flex-col">
         {/* Logo Section with Enhanced Styling */}
-        <div className="p-8 border-b border-sonix">
+        <div className="glassmorphism-header">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 via-purple-500 to-violet-600 rounded-2xl flex items-center justify-center sonix-glow relative overflow-hidden">
+            <div className="glassmorphism-logo">
               <span className="text-white font-bold text-lg relative z-10">🎵</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-100%] animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-purple-400/30 to-purple-600/20 rounded-2xl animate-pulse" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-sonix-primary">Sonix</h1>
-              <p className="text-xs text-sonix-secondary font-medium">Admin Dashboard</p>
+              <h1 className="text-xl font-bold text-white">Sonix</h1>
+              <p className="text-xs text-slate-400 font-medium">Admin Dashboard</p>
             </div>
           </div>
         </div>
         
         {/* Enhanced User Info */}
-        <div className="p-6 border-b border-sonix">
+        <div className="glassmorphism-user-section">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center ring-2 ring-purple-500/30">
+            <div className="glassmorphism-avatar">
               <span className="text-white text-sm font-semibold">
                 {session.user?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sonix-primary truncate">
+              <p className="text-white font-semibold truncate">
                 {session.user?.user_metadata?.name || 'Admin'}
               </p>
-              <p className="text-xs text-sonix-secondary truncate">
+              <p className="text-slate-400 text-sm truncate">
                 {session.user?.email}
               </p>
-              <div className="flex items-center mt-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-green-400 ml-1">Online</span>
+              <div className="flex items-center space-x-2 mt-1">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
+                <span className="text-xs text-emerald-400 font-medium">Online</span>
               </div>
             </div>
           </div>
         </div>
         
         {/* Enhanced Navigation */}
-        <nav className="flex-1 p-6 space-y-8 overflow-y-auto">
+        <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto glassmorphism-scrollbar">
           {/* Main Navigation */}
           <div className="space-y-2">
-            <div className="px-4 mb-4">
-              <h3 className="text-xs font-bold text-sonix-secondary uppercase tracking-widest">Main</h3>
+            <div className="px-2 mb-4">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Main</h3>
             </div>
             {mainNavItems.map((item) => renderNavItem(item, activePage === item.label))}
           </div>
 
-          <Separator style={{ backgroundColor: '#3F3F46' }} />
+          <div className="h-px bg-purple-600/20 mx-2" />
 
           {/* Content Management */}
           <div className="space-y-4">
-            <div className="px-4">
-              <h3 className="text-xs font-bold text-sonix-secondary uppercase tracking-widest">Content</h3>
+            <div className="px-2">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Content</h3>
             </div>
             <div className="space-y-2">
               {contentItems.map((item) => renderNavItem(item, activePage === item.label))}
             </div>
           </div>
 
-          <Separator style={{ backgroundColor: '#3F3F46' }} />
+          <div className="h-px bg-purple-600/20 mx-2" />
 
           {/* Analytics */}
           <div className="space-y-4">
-            <div className="px-4">
-              <h3 className="text-xs font-bold text-sonix-secondary uppercase tracking-widest">Insights</h3>
+            <div className="px-2">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Insights</h3>
             </div>
             <div className="space-y-2">
               {analyticsItems.map((item) => renderNavItem(item, activePage === item.label))}
             </div>
           </div>
 
-          <Separator style={{ backgroundColor: '#3F3F46' }} />
+          <div className="h-px bg-purple-600/20 mx-2" />
 
           {/* Other */}
           <div className="space-y-4">
-            <div className="px-4">
-              <h3 className="text-xs font-bold text-sonix-secondary uppercase tracking-widest">Other</h3>
+            <div className="px-2">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Other</h3>
             </div>
             <div className="space-y-2">
               {otherItems.map((item) => renderNavItem(item, false))}
@@ -216,14 +237,15 @@ export function Dashboard() {
         </nav>
 
         {/* Enhanced Bottom CTA */}
-        <div className="p-6 border-t border-sonix">
-          <div className="bg-gradient-to-br from-purple-900/50 to-purple-800/50 rounded-xl p-4 text-center border border-purple-500/30 backdrop-blur-sm">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="w-5 h-5 text-white" />
+        <div className="p-4">
+          <div className="glassmorphism-upgrade-card">
+            <div className="glassmorphism-upgrade-icon">
+              <TrendingUp className="w-6 h-6 text-purple-300" />
             </div>
-            <h4 className="text-sm font-bold text-sonix-primary mb-1">Upgrade Storage</h4>
-            <p className="text-xs text-sonix-secondary mb-3">Get unlimited music uploads</p>
-            <button className="sonix-button-primary text-xs py-2 px-4 w-full">
+            <h4 className="text-white font-bold mb-2">Upgrade Storage</h4>
+            <p className="text-slate-400 text-sm mb-4">Get unlimited music uploads</p>
+            <button className="glassmorphism-upgrade-btn w-full flex items-center justify-center gap-2">
+              <TrendingUp className="w-4 h-4" />
               Upgrade Now
             </button>
           </div>

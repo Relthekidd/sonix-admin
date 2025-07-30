@@ -256,18 +256,46 @@ html {
   
   .sonix-button-primary {
     font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.75rem;
-    transition: all 0.2s ease;
+    padding: 0.875rem 1.75rem;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: #FFFFFF;
     background: linear-gradient(135deg, var(--color-sonix-electric-purple), #A855F7);
     position: relative;
     overflow: hidden;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    box-shadow: 
+      rgba(139, 92, 246, 0.2) 0px 4px 16px,
+      inset rgba(255, 255, 255, 0.1) 0px 1px 0px;
   }
-  
+
+  .sonix-button-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .sonix-button-primary:hover::before {
+    left: 100%;
+  }
+
   .sonix-button-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 
+      rgba(139, 92, 246, 0.4) 0px 8px 24px,
+      inset rgba(255, 255, 255, 0.15) 0px 1px 0px;
+  }
+
+  .sonix-button-primary:active {
+    transform: translateY(0px);
+    box-shadow: 
+      rgba(139, 92, 246, 0.3) 0px 4px 16px,
+      inset rgba(0, 0, 0, 0.1) 0px 2px 4px;
   }
   
   .sonix-button-secondary {
@@ -283,30 +311,6 @@ html {
   .sonix-button-secondary:hover {
     background-color: rgba(139, 92, 246, 0.1);
     box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
-  }
-  
-  .sonix-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    color: var(--color-sonix-secondary-text);
-  }
-  
-  .sonix-nav-item-active {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
-    color: var(--color-sonix-primary-text);
-    border: 1px solid var(--color-sonix-electric-purple);
-    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-  }
-  
-  .sonix-nav-item:hover {
-    background-color: var(--color-sonix-hover);
-    color: var(--color-sonix-primary-text);
   }
 
   .sonix-shadow {
@@ -408,394 +412,7 @@ html {
       inset rgba(139, 92, 246, 0.08) 0px 1px 0px;
   }
 
-  /* Sidebar Glassmorphism */
-  .sonix-sidebar {
-    background: rgba(14, 14, 16, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(139, 92, 246, 0.1);
-  }
-
-  /* Header Glassmorphism */
-  .sonix-header {
-    background: rgba(14, 14, 16, 0.8);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
-  }
-
-  /* Pulse Animation for Status Indicators */
-  .sonix-pulse {
-    animation: sonix-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes sonix-pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-  }
-
-  /* Smooth Slide Animation */
-  .sonix-slide-in {
-    animation: sonix-slide-in 0.3s ease-out;
-  }
-
-  @keyframes sonix-slide-in {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  /* Enhanced Button Styles */
-  .sonix-button-primary {
-    font-weight: 600;
-    padding: 0.875rem 1.75rem;
-    border-radius: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: #FFFFFF;
-    background: linear-gradient(135deg, var(--color-sonix-electric-purple), #A855F7);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    box-shadow: 
-      rgba(139, 92, 246, 0.2) 0px 4px 16px,
-      inset rgba(255, 255, 255, 0.1) 0px 1px 0px;
-  }
-
-  .sonix-button-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-  }
-
-  .sonix-button-primary:hover::before {
-    left: 100%;
-  }
-
-  .sonix-button-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      rgba(139, 92, 246, 0.4) 0px 8px 24px,
-      inset rgba(255, 255, 255, 0.15) 0px 1px 0px;
-  }
-
-  .sonix-button-primary:active {
-    transform: translateY(0px);
-    box-shadow: 
-      rgba(139, 92, 246, 0.3) 0px 4px 16px,
-      inset rgba(0, 0, 0, 0.1) 0px 2px 4px;
-  }
-}
-
-/* Basic form field layout */
-.sonix-form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .sonix-sidebar {
-    width: 80px;
-  }
-  
-  .sonix-sidebar .sidebar-label {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .sonix-quick-card {
-    padding: 1.5rem;
-  }
-  
-  .sonix-status-card {
-    padding: 1.25rem;
-  }
-}
-
-/* ------------------------------------------------------------
-   Glassmorphism utilities for enhanced dashboard components
-   These classes style the AdminLayout and DashboardPage files.
-   ------------------------------------------------------------ */
-
-@layer components {
-  .glassmorphism-nav-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-300 transition-colors hover:bg-white/5;
-  }
-
-  .glassmorphism-nav-active {
-    @apply bg-white/10 text-white shadow-inner shadow-purple-400/20;
-  }
-
-  .glassmorphism-icon-container {
-    @apply flex items-center justify-center w-8 h-8 rounded-md bg-white/5 transition-colors;
-  }
-
-  .glassmorphism-icon-active {
-    @apply bg-purple-600/20;
-  }
-
-  .glassmorphism-sidebar {
-    @apply bg-slate-900/90 backdrop-blur-lg border-r border-purple-600/20;
-  }
-
-  .glassmorphism-header {
-    @apply p-4 border-b border-purple-600/20;
-  }
-
-  .glassmorphism-logo {
-    @apply w-10 h-10 rounded-2xl flex items-center justify-center bg-gradient-to-br from-purple-600 to-purple-700 relative overflow-hidden;
-  }
-
-  .glassmorphism-toggle-btn {
-    @apply p-2 rounded-md hover:bg-white/10 transition-colors;
-  }
-
-  .glassmorphism-user-section {
-    @apply p-4 border-b border-purple-600/20;
-  }
-
-  .glassmorphism-avatar {
-    @apply w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center;
-  }
-
-  .glassmorphism-scrollbar {
-    @apply scrollbar-thin scrollbar-thumb-purple-600/50 scrollbar-track-transparent;
-  }
-
-  .glassmorphism-upgrade-card {
-    @apply bg-slate-900/80 p-4 rounded-xl border border-purple-600/20 text-center;
-  }
-
-  .glassmorphism-upgrade-icon {
-    @apply w-10 h-10 flex items-center justify-center rounded-full bg-purple-600/20 mx-auto mb-3;
-  }
-
-  .glassmorphism-upgrade-btn {
-    @apply mt-2 px-3 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors;
-  }
-
-  .glassmorphism-mobile-header {
-    @apply flex items-center justify-between p-4 border-b border-purple-600/20 bg-slate-900/90 backdrop-blur-lg;
-  }
-
-  .glassmorphism-mobile-toggle {
-    @apply p-2 rounded-md hover:bg-white/10 transition-colors;
-  }
-
-  .glassmorphism-logo-small {
-    @apply w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center;
-  }
-
-  .glassmorphism-status-badge {
-    @apply bg-purple-600/20 text-white;
-  }
-
-  .glassmorphism-avatar-small {
-    @apply w-7 h-7 rounded-full bg-purple-500 flex items-center justify-center;
-  }
-
-  .glassmorphism-status-bar {
-    @apply px-6 py-2 border-b border-purple-600/20 bg-slate-900/90 backdrop-blur-lg;
-  }
-
-  .glassmorphism-admin-badge {
-    @apply bg-purple-600/20 text-white;
-  }
-
-  .glassmorphism-connection-badge {
-    @apply bg-emerald-600/20 text-white;
-  }
-
-  .glassmorphism-main-content {
-    @apply p-6 space-y-6;
-  }
-
-  /* Dashboard page styles */
-  .glassmorphism-loading-screen {
-    @apply flex items-center justify-center min-h-screen bg-slate-950;
-  }
-
-  .glassmorphism-loading-container {
-    @apply text-center space-y-4;
-  }
-
-  .glassmorphism-loading-logo {
-    @apply w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center relative;
-  }
-
-  .glassmorphism-loading-bar {
-    @apply mt-4 h-1 w-40 bg-white/20 rounded-full overflow-hidden;
-  }
-
-  .glassmorphism-loading-progress {
-    @apply h-full bg-purple-500 animate-pulse;
-  }
-
-  .glassmorphism-dashboard-header {
-    @apply flex justify-between items-center px-6 py-4 border-b border-purple-600/20 bg-slate-900/90 backdrop-blur-lg;
-  }
-
-  .glassmorphism-header-content {
-    @apply flex justify-between w-full items-center;
-  }
-
-  .glassmorphism-main-title {
-    @apply text-2xl font-bold text-white;
-  }
-
-  .glassmorphism-subtitle {
-    @apply text-sm text-slate-400;
-  }
-
-  .glassmorphism-header-stats {
-    @apply flex items-center gap-4;
-  }
-
-  .glassmorphism-live-indicator {
-    @apply flex items-center gap-1 text-sm text-emerald-400;
-  }
-
-  .glassmorphism-dashboard-main {
-    @apply p-6 space-y-8 overflow-y-auto;
-  }
-
-  .glassmorphism-section {
-    @apply space-y-4;
-  }
-
-  .glassmorphism-section-header {
-    @apply flex items-center mb-2;
-  }
-
-  .glassmorphism-section-title {
-    @apply text-lg font-semibold text-white;
-  }
-
-  .glassmorphism-section-divider {
-    @apply flex-1 ml-4 h-px bg-purple-600/20;
-  }
-
-  .glassmorphism-quick-access-container {
-    @apply overflow-x-auto;
-  }
-
-  .glassmorphism-quick-access-scroll {
-    @apply grid grid-flow-col auto-cols-max gap-4;
-  }
-
-  .glassmorphism-quick-card {
-    @apply sonix-quick-card;
-  }
-
-  .glassmorphism-status-grid {
-    @apply grid md:grid-cols-3 gap-4;
-  }
-
-  .glassmorphism-status-card {
-    @apply sonix-status-card;
-  }
-
-  .glassmorphism-activity-grid {
-    @apply grid lg:grid-cols-2 gap-6;
-  }
-
-  .glassmorphism-activity-card {
-    @apply sonix-card;
-  }
-
-  .glassmorphism-activity-header {
-    @apply flex items-center justify-between mb-4;
-  }
-
-  .glassmorphism-activity-title {
-    @apply text-lg font-semibold text-white;
-  }
-
-  .glassmorphism-activity-subtitle {
-    @apply text-sm text-slate-400;
-  }
-
-  .glassmorphism-live-badge {
-    @apply bg-purple-600/20 text-white;
-  }
-
-  .glassmorphism-track-item {
-    @apply flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors;
-  }
-
-  .glassmorphism-track-icon {
-    @apply w-8 h-8 flex items-center justify-center bg-purple-600/20 rounded-md;
-  }
-
-  .glassmorphism-track-title {
-    @apply text-sm font-medium text-white;
-  }
-
-  .glassmorphism-track-artist {
-    @apply text-xs text-slate-400;
-  }
-
-  .glassmorphism-track-meta {
-    @apply text-right text-xs text-slate-400;
-  }
-
-  .glassmorphism-track-badge {
-    @apply mb-1 bg-purple-600/20 text-white px-2 py-0.5 rounded-md;
-  }
-
-  .glassmorphism-track-date {
-    @apply text-xs text-slate-500;
-  }
-
-  .glassmorphism-empty-state {
-    @apply flex flex-col items-center justify-center py-10 text-slate-500;
-  }
-
-  .glassmorphism-empty-icon {
-    @apply mb-3;
-  }
-
-  .glassmorphism-empty-text {
-    @apply text-sm;
-  }
-
-  .glassmorphism-stat-item {
-    @apply flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors;
-  }
-
-  .glassmorphism-stat-label {
-    @apply text-sm text-slate-400;
-  }
-
-  .glassmorphism-stat-value {
-    @apply text-xl font-semibold text-white;
-  }
-
-  .glassmorphism-stat-change {
-    @apply text-right;
-  }
-
-  .glassmorphism-stat-growth {
-    @apply text-xs text-slate-400;
-  }
-
-  .glassmorphism-stat-percentage {
-    @apply flex items-center text-xs text-emerald-400;
-  }
-}
+  /* Featured card for special content */
+  .glassmorphism-featured-card {
+    background: linear-gradient(135deg, rgba(26, 26, 29, 0.8), rgba(39, 39, 42, 0.6));
+    border: 1px solid rgba(139,
