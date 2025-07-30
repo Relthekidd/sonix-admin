@@ -9,129 +9,6 @@ interface UseQueryResult<T> {
   refetch: () => void;
 }
 
-// Mock data for development
-const mockTracks: Track[] = [
-  {
-    id: '1',
-    title: 'Electric Soul',
-    artist_id: '1',
-    audio_url: '',
-    play_count: 15420,
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    updated_at: new Date().toISOString(),
-    status: 'published',
-    artist: { name: 'The Midnight Echo' }
-  },
-  {
-    id: '2',
-    title: 'Velvet Nights',
-    artist_id: '2',
-    audio_url: '',
-    play_count: 8932,
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    updated_at: new Date().toISOString(),
-    status: 'published',
-    artist: { name: 'Sophia Kim' }
-  },
-  {
-    id: '3',
-    title: 'Urban Legends',
-    artist_id: '3',
-    album_id: '1',
-    audio_url: '',
-    play_count: 23456,
-    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-    updated_at: new Date().toISOString(),
-    status: 'published',
-    artist: { name: 'Alex Thompson' }
-  },
-  {
-    id: '4',
-    title: 'Mountain Song',
-    artist_id: '4',
-    audio_url: '',
-    play_count: 5432,
-    created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    updated_at: new Date().toISOString(),
-    status: 'published',
-    artist: { name: 'River Stone' }
-  }
-];
-
-const mockArtists: Artist[] = [
-  {
-    id: '1',
-    name: 'The Midnight Echo',
-    verified: true,
-    total_tracks: 12,
-    total_albums: 2,
-    monthly_listeners: 45000,
-    created_at: '2024-01-15T00:00:00Z',
-    updated_at: '2024-01-15T00:00:00Z'
-  },
-  {
-    id: '2',
-    name: 'Sophia Kim',
-    verified: true,
-    total_tracks: 8,
-    total_albums: 1,
-    monthly_listeners: 32000,
-    created_at: '2024-02-01T00:00:00Z',
-    updated_at: '2024-02-01T00:00:00Z'
-  },
-  {
-    id: '3',
-    name: 'Alex Thompson',
-    verified: false,
-    total_tracks: 6,
-    total_albums: 1,
-    monthly_listeners: 18000,
-    created_at: '2024-03-10T00:00:00Z',
-    updated_at: '2024-03-10T00:00:00Z'
-  },
-  {
-    id: '4',
-    name: 'River Stone',
-    verified: true,
-    total_tracks: 15,
-    total_albums: 3,
-    monthly_listeners: 67000,
-    created_at: '2024-01-20T00:00:00Z',
-    updated_at: '2024-01-20T00:00:00Z'
-  },
-  {
-    id: '5',
-    name: 'Luna Rodriguez',
-    verified: true,
-    total_tracks: 20,
-    total_albums: 4,
-    monthly_listeners: 89000,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
-  }
-];
-
-const mockVerificationRequests: ArtistVerificationRequest[] = [
-  {
-    id: '1',
-    user_id: 'user1',
-    name: 'Maya Chen',
-    email: 'maya.chen@email.com',
-    bio: 'Indie pop artist from Seattle',
-    status: 'pending',
-    submitted_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '2',
-    user_id: 'user2',
-    name: 'David Park',
-    email: 'david.park@email.com',
-    bio: 'Electronic music producer',
-    status: 'pending',
-    submitted_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-  }
-];
-
 // Tracks hooks
 export const useTracks = (): UseQueryResult<Track[]> => {
   const [data, setData] = useState<Track[] | null>(null);
@@ -139,16 +16,14 @@ export const useTracks = (): UseQueryResult<Track[]> => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTracks = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // Replace with real Supabase query if needed
-      setData(mockTracks);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tracks');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+    const { data: tracks, error } = await supabase
+      .from('tracks')
+      .select('*');
+    if (error) setError(error.message);
+    setData(tracks ?? null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -164,19 +39,16 @@ export const useRecentTracks = (limit: number = 10): UseQueryResult<Track[]> => 
   const [error, setError] = useState<string | null>(null);
 
   const fetchRecentTracks = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // Sort by created_at descending and take the first `limit` tracks
-      const sorted = [...mockTracks].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-      setData(sorted.slice(0, limit));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch recent tracks');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+    const { data: tracks, error } = await supabase
+      .from('tracks')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) setError(error.message);
+    setData(tracks ?? null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -193,15 +65,14 @@ export const useArtists = (): UseQueryResult<Artist[]> => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchArtists = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setData(mockArtists);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch artists');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+    const { data: artists, error } = await supabase
+      .from('artists')
+      .select('*');
+    if (error) setError(error.message);
+    setData(artists ?? null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -218,15 +89,14 @@ export const useUsers = (): UseQueryResult<User[]> => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setData([]); // Replace with mockUsers if you have them
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch users');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*');
+    if (error) setError(error.message);
+    setData(users ?? null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -243,15 +113,14 @@ export const usePlaylists = (): UseQueryResult<Playlist[]> => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchPlaylists = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setData([]); // Replace with mockPlaylists if you have them
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch playlists');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+    const { data: playlists, error } = await supabase
+      .from('playlists')
+      .select('*');
+    if (error) setError(error.message);
+    setData(playlists ?? null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -268,15 +137,14 @@ export const useVerificationRequests = (): UseQueryResult<ArtistVerificationRequ
   const [error, setError] = useState<string | null>(null);
 
   const fetchRequests = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setData(mockVerificationRequests);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch verification requests');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+    const { data: requests, error } = await supabase
+      .from('artist_verification_requests')
+      .select('*');
+    if (error) setError(error.message);
+    setData(requests ?? null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -298,28 +166,34 @@ export const usePlatformStats = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchStats = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const totalTracks = mockTracks.length;
-      const totalArtists = mockArtists.length;
-      const totalPlayCount = mockTracks.reduce(
-        (sum: number, track: Track) => sum + (track.play_count || 0),
-        0
-      );
-      const averagePlayCount =
-        totalTracks > 0 ? Math.round(totalPlayCount / totalTracks) : 0;
-      setStats({
-        totalTracks,
-        totalArtists,
-        totalPlayCount,
-        averagePlayCount,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch stats');
-    } finally {
+    setLoading(true);
+    setError(null);
+
+    // Fetch all tracks and artists
+    const { data: tracks, error: tracksError } = await supabase.from('tracks').select('play_count');
+    const { data: artists, error: artistsError } = await supabase.from('artists').select('id');
+
+    if (tracksError || artistsError) {
+      setError(tracksError?.message || artistsError?.message || 'Failed to fetch stats');
       setLoading(false);
+      return;
     }
+
+    const totalTracks = tracks?.length ?? 0;
+    const totalArtists = artists?.length ?? 0;
+    const totalPlayCount = (tracks ?? []).reduce(
+      (sum: number, track: { play_count?: number }) => sum + (track.play_count || 0),
+      0
+    );
+    const averagePlayCount = totalTracks > 0 ? Math.round(totalPlayCount / totalTracks) : 0;
+
+    setStats({
+      totalTracks,
+      totalArtists,
+      totalPlayCount,
+      averagePlayCount,
+    });
+    setLoading(false);
   };
 
   useEffect(() => {
