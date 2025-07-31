@@ -7,7 +7,7 @@ import {
   type User,
   type Playlist,
   type ArtistVerificationRequest,
-} from './client';
+} from './supabaseClient';
 
 // Generic hook for loading states
 interface UseQueryResult<T> {
@@ -91,7 +91,7 @@ export const useArtists = (): UseQueryResult<Artist[]> => {
 };
 
 // Users hooks
-import type { Profile } from './client'
+import type { Profile } from './supabaseClient'
 
 export const useUsers = (): UseQueryResult<Profile[]> => {
   const [data, setData] = useState<Profile[] | null>(null);
