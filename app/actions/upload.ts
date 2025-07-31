@@ -2,9 +2,13 @@
 
 import slugify from 'slugify'
 import { supabaseAdmin } from '../../utils/supabase/serverClient'
+import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
+
+const getSupabase = () =>
+  typeof window === 'undefined' ? supabaseAdmin() : supabaseBrowser()
 
 export async function uploadSingleAction(formData: FormData) {
-  const supabase = supabaseAdmin()
+  const supabase = getSupabase()
   const title = formData.get('title') as string
   const artist = formData.get('artist') as string
   const genre = formData.get('genre') as string
@@ -59,7 +63,7 @@ export async function uploadSingleAction(formData: FormData) {
 }
 
 export async function uploadAlbumAction(formData: FormData) {
-  const supabase = supabaseAdmin()
+  const supabase = getSupabase()
   const title = formData.get('title') as string
   const artist = formData.get('artist') as string
   const genre = formData.get('genre') as string
