@@ -53,7 +53,7 @@ export async function uploadSingleAction(formData: FormData) {
     language,
     duration,
     published,
-    audio_path: audioData.path,
+    audio_url: audioData.path,
     cover_path: coverPath,
     slug
   })
