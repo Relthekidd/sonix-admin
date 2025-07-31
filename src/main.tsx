@@ -22,6 +22,7 @@ import { LoginPage } from '../components/pages/LoginPage'
 import { UnauthorizedPage } from '../components/pages/UnauthorizedPage'
 import '../styles/globals.css'
 import '../styles/glassmorphism.css'
+import { Toaster } from '../components/ui/sonner'
 
 function App() {
   return (
@@ -68,6 +69,7 @@ if (!existingRoot) {
 root.render(
   <React.StrictMode>
     <App />
+    <Toaster position="bottom-right" />
   </React.StrictMode>
 );
 

@@ -1,8 +1,10 @@
 import { useState, useEffect, useTransition } from 'react'
 import { uploadSingleAction } from '../../app/actions/upload'
-import { supabaseBrowser } from '../../utils/supabase/client'
+import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
+import { GlassForm } from '../common/GlassCard'
+import { toast } from 'sonner'
 
 export default function UploadSingleForm() {
   const [title, setTitle] = useState('')
@@ -20,7 +22,6 @@ export default function UploadSingleForm() {
   const [language, setLanguage] = useState('')
   const [duration, setDuration] = useState('')
   const [published, setPublished] = useState(false)
-  const [message, setMessage] = useState('')
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
@@ -68,15 +69,22 @@ export default function UploadSingleForm() {
     if (published) fd.append('published', 'on')
 
     startTransition(async () => {
-      const res = await uploadSingleAction(fd)
-      if (res.success) { setMessage('Uploaded successfully'); reset() }
-      else setMessage('Upload failed')
+      try {
+        const res = await uploadSingleAction(fd)
+        if (res.success) {
+          toast('Uploaded successfully')
+          reset()
+        } else {
+          toast(res.message || 'Upload failed')
+        }
+      } catch (err: any) {
+        toast(err.message || 'Upload failed')
+      }
     })
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      {message && <p className="text-sm">{message}</p>}
+    <GlassForm onSubmit={onSubmit} className="space-y-6 text-lg">
       <div className="sonix-form-field">
         <label>Title</label>
         <Input value={title} onChange={e => setTitle(e.target.value)} required />
@@ -98,11 +106,33 @@ export default function UploadSingleForm() {
       </div>
       <div className="sonix-form-field">
         <label>Genre</label>
-        <Input value={genre} onChange={e => setGenre(e.target.value)} />
+        <select
+          value={genre}
+          onChange={e => setGenre(e.target.value)}
+          className="w-full border rounded px-3 py-2 bg-dark-card text-dark-primary"
+        >
+          <option value="">Select genre</option>
+          <option>Hip-Hop</option>
+          <option>R&B</option>
+          <option>EDM</option>
+          <option>Rock</option>
+          <option>Pop</option>
+        </select>
       </div>
       <div className="sonix-form-field">
         <label>Mood</label>
-        <Input value={mood} onChange={e => setMood(e.target.value)} />
+        <select
+          value={mood}
+          onChange={e => setMood(e.target.value)}
+          className="w-full border rounded px-3 py-2 bg-dark-card text-dark-primary"
+        >
+          <option value="">Select mood</option>
+          <option>Hype</option>
+          <option>Chill</option>
+          <option>Romantic</option>
+          <option>Dark</option>
+          <option>Uplifting</option>
+        </select>
       </div>
       <div className="sonix-form-field">
         <label>Description</label>
@@ -133,7 +163,10 @@ export default function UploadSingleForm() {
           <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} /> Published
         </label>
       </div>
-      <button disabled={pending} className="sonix-button-primary">Upload</button>
-    </form>
+      <button disabled={pending} className="sonix-button-primary flex items-center gap-2">
+        {pending && <span className="h-4 w-4 border-2 border-t-transparent rounded-full animate-spin" />}
+        Upload
+      </button>
+    </GlassForm>
   )
 }
