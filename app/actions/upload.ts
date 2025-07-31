@@ -54,7 +54,7 @@ export async function uploadSingleAction(formData: FormData) {
     duration,
     published,
     audio_url: audioData.path,
-    cover_path: coverPath,
+    cover_url: coverPath,
     slug
   })
 
@@ -94,7 +94,7 @@ export async function uploadAlbumAction(formData: FormData) {
       description,
       release_date: releaseDate,
       published,
-      cover_path: coverPath,
+      cover_url: cover,
       slug
     })
     .select()
