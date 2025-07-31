@@ -19,6 +19,7 @@ import {
   Settings,
   Crown,
 } from "lucide-react";
+import { ThemeToggle } from "../common/ThemeToggle";
 
 const navigationItems = [
   { icon: BarChart3, label: "Dashboard", path: "/", color: "text-purple-400" },
@@ -95,7 +96,7 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Mobile Overlay */}
       {mobileMenuOpen && (
         <div 
@@ -203,6 +204,7 @@ export function AdminLayout() {
                 {session?.user?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
+            <ThemeToggle />
           </div>
         </div>
 
@@ -217,6 +219,7 @@ export function AdminLayout() {
               <Wifi className="w-4 h-4 mr-2" />
               Connected to Supabase
             </Badge>
+            <ThemeToggle />
           </div>
         </div>
 
