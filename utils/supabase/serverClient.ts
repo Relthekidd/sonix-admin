@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 export const supabaseAdmin = () => {
+
   if (typeof window !== 'undefined') {
     throw new Error('supabaseAdmin can only be used on the server');
   }
