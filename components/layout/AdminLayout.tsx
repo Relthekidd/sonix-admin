@@ -1,6 +1,19 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarTrigger,
+  SidebarRail,
+  SidebarInset,
+} from "../ui/sidebar";
+import {
   BarChart3,
   Upload,
   Mic,
@@ -31,36 +44,41 @@ export function AdminLayout() {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 flex">
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-64 flex-col border-r border-gray-800 bg-gray-900 p-4">
-        <h1 className="mb-6 px-2 text-xl font-semibold">Sonix Admin</h1>
-        <nav className="flex-1 space-y-1">
-          {navigationItems.map(({ icon: Icon, label, path }) => (
-            <NavLink
-              key={path}
-              to={path}
-              end={path === "/"}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-gray-800 text-white border-l-4 border-purple-500"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                }`
-              }
-            >
-              <Icon className="h-5 w-5" />
-              <span className="truncate">{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-        <div className="mt-auto flex items-center justify-between pt-4 text-xs">
-          <span className="truncate">{session?.user?.email}</span>
-          <ThemeToggle />
-        </div>
-      </aside>
-      <main className="ml-64 flex-1 p-6 overflow-y-auto">
+    <SidebarProvider className="flex min-h-screen bg-background text-foreground">
+      <Sidebar className="border-r border-border bg-sidebar">
+        <SidebarHeader className="flex items-center justify-between">
+          <h1 className="px-2 text-xl font-semibold">Sonix Admin</h1>
+          <SidebarTrigger className="md:hidden" />
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {navigationItems.map(({ icon: Icon, label, path }) => (
+              <SidebarMenuItem key={path}>
+                <NavLink to={path} end={path === "/"} className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton asChild isActive={isActive} className="w-full">
+                      <span className="flex items-center gap-3">
+                        <Icon className="h-5 w-5" />
+                        <span className="truncate">{label}</span>
+                      </span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="flex items-center justify-between text-xs">
+            <span className="truncate">{session?.user?.email}</span>
+            <ThemeToggle />
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarRail className="bg-sidebar" />
+      <SidebarInset className="p-6 overflow-y-auto">
         <Outlet />
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
