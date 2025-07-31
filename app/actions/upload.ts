@@ -9,6 +9,8 @@ const getSupabase = () =>
 
 export async function uploadSingleAction(formData: FormData) {
   const supabase = getSupabase()
+  const { data: userData } = await supabase.auth.getUser()
+  const userId = userData?.user?.id || null
   const title = formData.get('title') as string
   const artistId = formData.get('artist') as string
   const genre = formData.get('genre') as string
@@ -56,6 +58,8 @@ export async function uploadSingleAction(formData: FormData) {
   const { data: trackData, error: trackError } = await supabase
     .from('tracks')
     .insert({
+      album_id: null,
+      created_by: userId,
       title,
       artist_id: artistId || null,
       featured_artist_ids: featuredArtistIds,
@@ -88,6 +92,7 @@ export async function uploadSingleAction(formData: FormData) {
     audio_url: audioData.path,
     cover_url: coverPath,
     slug,
+    created_by: userId,
     track_id: trackData.id
   })
 
@@ -97,6 +102,8 @@ export async function uploadSingleAction(formData: FormData) {
 
 export async function uploadAlbumAction(formData: FormData) {
   const supabase = getSupabase()
+  const { data: userData } = await supabase.auth.getUser()
+  const userId = userData?.user?.id || null
   const title = formData.get('title') as string
   const artistId = formData.get('artist') as string
   const genre = formData.get('genre') as string
@@ -112,7 +119,7 @@ export async function uploadAlbumAction(formData: FormData) {
   if (cover) {
     const { data, error } = await supabase.storage
       .from('images')
-      .upload(`albums/${slug}-${Date.now()}`, cover)
+      .upload(`covers/${slug}-${Date.now()}`, cover)
     if (error) return { success: false, message: error.message }
     coverPath = data.path
   }
@@ -128,7 +135,8 @@ export async function uploadAlbumAction(formData: FormData) {
       release_date: releaseDate,
       published,
       cover_url: coverPath,
-      slug
+      slug,
+      created_by: userId
     })
     .select()
     .single()
@@ -154,7 +162,9 @@ export async function uploadAlbumAction(formData: FormData) {
       title: track.title,
       artist_id: artistId,
       album_id: albumData.id,
+      created_by: userId,
       audio_url: audioData.path,
+      cover_url: coverPath,
       lyrics: track.lyrics,
       featured_artist_ids: trackFeatured,
       is_published: published,
