@@ -114,7 +114,7 @@ export async function uploadAlbumAction(formData: FormData) {
       title: track.title,
       artist_id: artist,
       album_id: albumData.id,
-      audio_path: audioData.path,
+      audio_url: audioData.path,
       lyrics: track.lyrics,
       featured_artists: track.featuredArtists,
       slug: trackSlug,
