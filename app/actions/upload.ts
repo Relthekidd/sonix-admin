@@ -10,7 +10,7 @@ const getSupabase = () =>
 export async function uploadSingleAction(formData: FormData) {
   const supabase = getSupabase()
   const title = formData.get('title') as string
-  const artist = formData.get('artist') as string
+  const artistId = formData.get('artist') as string
   const genre = formData.get('genre') as string
   const mood = formData.get('mood') as string
   const description = formData.get('description') as string
@@ -18,7 +18,6 @@ export async function uploadSingleAction(formData: FormData) {
   const releaseDate = formData.get('releaseDate') as string
   const albumId = formData.get('albumId') as string
   const featuredArtists = formData.get('featuredArtists') as string
-  const language = formData.get('language') as string
   const duration = formData.get('duration') as string
   const published = formData.get('published') === 'on'
   const audio = formData.get('audio') as File
@@ -40,22 +39,34 @@ export async function uploadSingleAction(formData: FormData) {
     coverPath = data.path
   }
 
+  const featuredArtistIds = featuredArtists
+    ? featuredArtists.split(',').map(id => id.trim()).filter(Boolean)
+    : null
+
+  const durationSeconds = (() => {
+    if (!duration) return null
+    if (duration.includes(':')) {
+      const [m, s] = duration.split(':').map(Number)
+      return m * 60 + (s || 0)
+    }
+    return Number(duration)
+  })()
+
+  const genres = [genre, mood].filter(Boolean)
+
   const { error: insertError } = await supabase.from('tracks').insert({
     title,
-    artist_id: artist,
-    genre,
-    mood,
+    artist_id: artistId || null,
+    album_id: albumId || null,
+    featured_artist_ids: featuredArtistIds,
     description,
     lyrics,
-    release_date: releaseDate,
-    album_id: albumId || null,
-    featured_artists: featuredArtists,
-    language,
-    duration,
-    published,
+    genres: genres.length ? genres : null,
+    release_date: releaseDate || null,
+    duration: durationSeconds,
+    is_published: published,
     audio_url: audioData.path,
-    cover_path: coverPath,
-    slug
+    cover_url: coverPath
   })
 
   if (insertError) return { success: false, message: insertError.message }
@@ -65,7 +76,7 @@ export async function uploadSingleAction(formData: FormData) {
 export async function uploadAlbumAction(formData: FormData) {
   const supabase = getSupabase()
   const title = formData.get('title') as string
-  const artist = formData.get('artist') as string
+  const artistId = formData.get('artist') as string
   const genre = formData.get('genre') as string
   const description = formData.get('description') as string
   const albumId = formData.get('albumId') as string
@@ -89,12 +100,12 @@ export async function uploadAlbumAction(formData: FormData) {
     .insert({
       id: albumId || undefined,
       title,
-      artist_id: artist,
+      artist_id: artistId,
       genre,
       description,
       release_date: releaseDate,
       published,
-      cover_path: coverPath,
+      cover_url: coverPath,
       slug
     })
     .select()
@@ -110,15 +121,20 @@ export async function uploadAlbumAction(formData: FormData) {
       .upload(`tracks/${trackSlug}-${Date.now()}`, track.file as File)
     if (audioErr) return { success: false, message: audioErr.message }
 
+    const trackFeatured = track.featuredArtists
+      ? track.featuredArtists.split(',').map((id: string) => id.trim()).filter(Boolean)
+      : null
+
     const { error } = await supabase.from('tracks').insert({
       title: track.title,
-      artist_id: artist,
+      artist_id: artistId,
       album_id: albumData.id,
       audio_url: audioData.path,
       lyrics: track.lyrics,
-      featured_artists: track.featuredArtists,
-      slug: trackSlug,
-      published
+      featured_artist_ids: trackFeatured,
+      is_published: published,
+      genres: genre ? [genre] : null,
+      release_date: releaseDate || null
     })
     if (error) return { success: false, message: error.message }
   }

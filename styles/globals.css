@@ -712,12 +712,20 @@ a:hover {
 
 /* Basic form layout used on the upload pages */
 .sonix-form-field {
-  @apply flex flex-col gap-2 mb-4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .sonix-form-field input,
 .sonix-form-field select,
 .sonix-form-field textarea {
-  @apply w-full rounded-md bg-sonix-card border border-sonix px-3 py-2 text-sonix-primary;
+  width: 100%;
+  border-radius: 0.375rem;
+  background-color: var(--color-sonix-card);
+  border: 1px solid var(--color-sonix-border);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-sonix-primary-text);
 }
 
