@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-import { supabaseBrowser } from '../supabase/client';
+import { supabaseBrowser } from '../supabase/supabaseClient';
 
 interface AuthContextValue {
   session: Session | null;

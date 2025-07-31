@@ -1,6 +1,6 @@
 import { useState, useEffect, useTransition } from 'react'
 import { uploadSingleAction } from '../../app/actions/upload'
-import { supabaseBrowser } from '../../utils/supabase/client'
+import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 
@@ -68,9 +68,17 @@ export default function UploadSingleForm() {
     if (published) fd.append('published', 'on')
 
     startTransition(async () => {
-      const res = await uploadSingleAction(fd)
-      if (res.success) { setMessage('Uploaded successfully'); reset() }
-      else setMessage('Upload failed')
+      try {
+        const res = await uploadSingleAction(fd)
+        if (res.success) {
+          setMessage('Uploaded successfully')
+          reset()
+        } else {
+          setMessage(res.message || 'Upload failed')
+        }
+      } catch (err: any) {
+        setMessage(err.message || 'Upload failed')
+      }
     })
   }
 

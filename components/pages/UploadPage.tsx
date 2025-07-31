@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import UploadSingleForm from '../upload/UploadSingleForm'
 import UploadAlbumForm from '../upload/UploadAlbumForm'
+import { ErrorBoundary } from '../common/ErrorBoundary'
 
 export function UploadPage() {
   const [tab, setTab] = useState('single')
@@ -19,7 +20,9 @@ export function UploadPage() {
           <TabsTrigger value="album">Album</TabsTrigger>
         </TabsList>
         <TabsContent value="single">
-          <UploadSingleForm />
+          <ErrorBoundary>
+            <UploadSingleForm />
+          </ErrorBoundary>
         </TabsContent>
         <TabsContent value="album">
           <UploadAlbumForm />
