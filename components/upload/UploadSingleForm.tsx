@@ -17,7 +17,6 @@ export default function UploadSingleForm() {
   const [description, setDescription] = useState('')
   const [lyrics, setLyrics] = useState('')
   const [releaseDate, setReleaseDate] = useState('')
-  const [albumId, setAlbumId] = useState('')
   const [featuredArtists, setFeaturedArtists] = useState('')
   const [duration, setDuration] = useState('')
   const [published, setPublished] = useState(false)
@@ -44,7 +43,7 @@ export default function UploadSingleForm() {
   const reset = () => {
     setTitle(''); setArtist(''); setCover(null); setAudio(null); setGenre('');
     setMood(''); setDescription(''); setLyrics(''); setReleaseDate('');
-    setAlbumId(''); setFeaturedArtists(''); setDuration('');
+    setFeaturedArtists(''); setDuration('');
     setPublished(false)
   }
 
@@ -61,7 +60,6 @@ export default function UploadSingleForm() {
     fd.append('description', description)
     fd.append('lyrics', lyrics)
     fd.append('releaseDate', releaseDate)
-    fd.append('albumId', albumId)
     fd.append('featuredArtists', featuredArtists)
     fd.append('duration', duration)
     if (published) fd.append('published', 'on')
@@ -143,10 +141,6 @@ export default function UploadSingleForm() {
       <div className="sonix-form-field">
         <label>Release Date</label>
         <Input type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Album ID</label>
-        <Input value={albumId} onChange={e => setAlbumId(e.target.value)} />
       </div>
       <div className="sonix-form-field">
         <label>Featured Artists</label>

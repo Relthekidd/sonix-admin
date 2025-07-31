@@ -16,7 +16,6 @@ export async function uploadSingleAction(formData: FormData) {
   const description = formData.get('description') as string
   const lyrics = formData.get('lyrics') as string
   const releaseDate = formData.get('releaseDate') as string
-  const albumId = formData.get('albumId') as string
   const featuredArtists = formData.get('featuredArtists') as string
   const duration = formData.get('duration') as string
   const published = formData.get('published') === 'on'
@@ -54,10 +53,31 @@ export async function uploadSingleAction(formData: FormData) {
 
   const genres = [genre, mood].filter(Boolean)
 
-  const { error: insertError } = await supabase.from('tracks').insert({
+  const { data: trackData, error: trackError } = await supabase
+    .from('tracks')
+    .insert({
+      title,
+      artist_id: artistId || null,
+      featured_artist_ids: featuredArtistIds,
+      description,
+      lyrics,
+      genres: genres.length ? genres : null,
+      release_date: releaseDate || null,
+      duration: durationSeconds,
+      is_published: published,
+      audio_url: audioData.path,
+      cover_url: coverPath,
+      slug
+    })
+    .select()
+    .single()
+
+  if (trackError || !trackData)
+    return { success: false, message: trackError?.message }
+
+  const { error: singleError } = await supabase.from('singles').insert({
     title,
     artist_id: artistId || null,
-    album_id: albumId || null,
     featured_artist_ids: featuredArtistIds,
     description,
     lyrics,
@@ -66,10 +86,12 @@ export async function uploadSingleAction(formData: FormData) {
     duration: durationSeconds,
     is_published: published,
     audio_url: audioData.path,
-    cover_url: coverPath
+    cover_url: coverPath,
+    slug,
+    track_id: trackData.id
   })
 
-  if (insertError) return { success: false, message: insertError.message }
+  if (singleError) return { success: false, message: singleError.message }
   return { success: true }
 }
 
@@ -114,11 +136,14 @@ export async function uploadAlbumAction(formData: FormData) {
   if (albumErr || !albumData) return { success: false, message: albumErr?.message }
 
   const tracks: any[] = JSON.parse(formData.get('tracks') as string || '[]')
-  for (const track of tracks) {
+  for (let i = 0; i < tracks.length; i++) {
+    const track = tracks[i]
+    const trackFile = formData.get(`trackFile${i}`) as File | null
+    if (!trackFile) continue
     const trackSlug = slugify(track.title, { lower: true, strict: true })
     const { data: audioData, error: audioErr } = await supabase.storage
       .from('audio-files')
-      .upload(`tracks/${trackSlug}-${Date.now()}`, track.file as File)
+      .upload(`tracks/${trackSlug}-${Date.now()}`, trackFile)
     if (audioErr) return { success: false, message: audioErr.message }
 
     const trackFeatured = track.featuredArtists
@@ -134,7 +159,9 @@ export async function uploadAlbumAction(formData: FormData) {
       featured_artist_ids: trackFeatured,
       is_published: published,
       genres: genre ? [genre] : null,
-      release_date: releaseDate || null
+      release_date: releaseDate || null,
+      track_number: i + 1,
+      slug: trackSlug
     })
     if (error) return { success: false, message: error.message }
   }
