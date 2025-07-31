@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
 import { createClient, type User } from '@supabase/supabase-js'
 
 export type { User }
@@ -10,13 +9,12 @@ export type Artist = any
 export type Playlist = any
 export type ArtistVerificationRequest = any
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
-const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY as string
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+)
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export const supabaseBrowser = () => supabase
-export const supabaseAdmin = () => createClient(supabaseUrl, serviceRoleKey)
 
 export const getCurrentUser = async () => {
   const { data } = await supabase.auth.getUser()
