@@ -72,13 +72,13 @@ export default function UploadSingleForm() {
       try {
         const res = await uploadSingleAction(fd)
         if (res.success) {
-          toast('Uploaded successfully')
+          setMessage('Uploaded successfully')
           reset()
         } else {
-          toast(res.message || 'Upload failed')
+          setMessage(res.message || 'Upload failed')
         }
       } catch (err: any) {
-        toast(err.message || 'Upload failed')
+        setMessage(err.message || 'Upload failed')
       }
     })
   }
