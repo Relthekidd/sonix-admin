@@ -91,8 +91,10 @@ export const useArtists = (): UseQueryResult<Artist[]> => {
 };
 
 // Users hooks
-export const useUsers = (): UseQueryResult<User[]> => {
-  const [data, setData] = useState<User[] | null>(null);
+import type { Profile } from './client'
+
+export const useUsers = (): UseQueryResult<Profile[]> => {
+  const [data, setData] = useState<Profile[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,7 +102,7 @@ export const useUsers = (): UseQueryResult<User[]> => {
     setLoading(true);
     setError(null);
     const { data: users, error } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*');
     if (error) setError(error.message);
     setData(users ?? null);

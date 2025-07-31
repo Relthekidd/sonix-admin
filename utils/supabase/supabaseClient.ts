@@ -8,6 +8,15 @@ export type Album = any
 export type Artist = any
 export type Playlist = any
 export type ArtistVerificationRequest = any
+export interface Profile {
+  id: string
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  avatar_url?: string
+  created_at: string
+}
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,

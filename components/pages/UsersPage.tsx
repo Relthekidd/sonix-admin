@@ -20,11 +20,10 @@ export function UsersPage() {
   const filteredUsers = (users || []).filter(user => {
     const matchesSearch =
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.user_metadata?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "All" ||
-      (statusFilter === "Admin" ? user.role === "admin" : user.role !== "admin");
-    return matchesSearch && matchesStatus;
+      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const getStatusIcon = (role: string) => {
@@ -94,9 +93,10 @@ export function UsersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-dark-color">
+                  <th className="text-left font-semibold text-dark-primary pb-4 px-4">Avatar</th>
+                  <th className="text-left font-semibold text-dark-primary pb-4 px-4">Username</th>
                   <th className="text-left font-semibold text-dark-primary pb-4 px-4">Name</th>
                   <th className="text-left font-semibold text-dark-primary pb-4 px-4">Email</th>
-                  <th className="text-left font-semibold text-dark-primary pb-4 px-4">Role</th>
                   <th className="text-left font-semibold text-dark-primary pb-4 px-4">Joined</th>
                   <th className="text-center font-semibold text-dark-primary pb-4 px-4">Actions</th>
                 </tr>
@@ -111,14 +111,16 @@ export function UsersPage() {
                 )}
                 {!loading && filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b border-dark-color hover:bg-dark-table-hover transition-colors">
-                    <td className="py-4 px-4 font-medium text-dark-primary">{user.user_metadata?.name || 'N/A'}</td>
-                    <td className="py-4 px-4 text-dark-secondary">{user.email}</td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(user.role)}
-                        <span className={getStatusBadge(user.role)}>{user.role || 'user'}</span>
-                      </div>
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-dark-color" />
+                      )}
                     </td>
+                    <td className="py-4 px-4 font-medium text-dark-primary">{user.username}</td>
+                    <td className="py-4 px-4 text-dark-primary">{user.first_name} {user.last_name}</td>
+                    <td className="py-4 px-4 text-dark-secondary">{user.email}</td>
                     <td className="py-4 px-4 text-dark-secondary">{new Date(user.created_at).toLocaleDateString()}</td>
                     <td className="py-4 px-4 text-center">
                       <DropdownMenu>
