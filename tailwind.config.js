@@ -7,6 +7,7 @@ export default {
     "./utils/**/*.{js,ts,jsx,tsx}",
     "./styles/**/*.{css,scss}",
   ],
+  darkMode: "class",
   theme: {
     extend: {},
   },

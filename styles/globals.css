@@ -42,21 +42,64 @@ button {
 
 :root {
   --font-size: 14px;
-  
-  /* Sonix Color Palette */
-  --sonix-black: #0E0E10;
-  --sonix-dark-card: #1A1A1D;
-  --sonix-primary-text: #FFFFFF;
-  --sonix-secondary-text: #A1A1AA;
-  --sonix-electric-purple: #8B5CF6;
-  --sonix-neon-green: #10B981;
-  --sonix-error-red: #EF4444;
-  --sonix-tag: #27272A;
-  --sonix-hover: #2A2A2D;
-  --sonix-table-hover: #1F1F23;
-  --sonix-border: #3F3F46;
-  
-  /* Updated theme variables for Sonix */
+
+  /* Light theme palette */
+  --sonix-black: #f9fafb;
+  --sonix-dark-card: #ffffff;
+  --sonix-primary-text: #0e0e10;
+  --sonix-secondary-text: #475569;
+  --sonix-electric-purple: #8b5cf6;
+  --sonix-neon-green: #10b981;
+  --sonix-error-red: #ef4444;
+  --sonix-tag: #e2e8f0;
+  --sonix-hover: #f1f5f9;
+  --sonix-table-hover: #f8fafc;
+  --sonix-border: #d1d5db;
+
+  --background: #f9fafb;
+  --foreground: #0e0e10;
+  --card: #ffffff;
+  --card-foreground: #0e0e10;
+  --popover: #ffffff;
+  --popover-foreground: #0e0e10;
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0e0e10;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+  --accent: #8b5cf6;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #d1d5db;
+  --input: #ffffff;
+  --input-background: #ffffff;
+  --switch-background: #e5e7eb;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --ring: #8b5cf6;
+
+  /* Chart colors */
+  --chart-1: #8b5cf6;
+  --chart-2: #10b981;
+  --chart-3: #64748b;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+
+  --radius: 0.75rem;
+
+  --sidebar: #f9fafb;
+  --sidebar-foreground: #0e0e10;
+  --sidebar-primary: #0e0e10;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #8b5cf6;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #d1d5db;
+  --sidebar-ring: #8b5cf6;
+}
+
+.dark {
   --background: #0E0E10;
   --foreground: #FFFFFF;
   --card: #1A1A1D;
@@ -77,20 +120,12 @@ button {
   --input: #1A1A1D;
   --input-background: #1A1A1D;
   --switch-background: #3F3F46;
-  --font-weight-medium: 600;
-  --font-weight-normal: 400;
   --ring: #8B5CF6;
-  
-  /* Chart colors using Sonix theme */
   --chart-1: #8B5CF6;
   --chart-2: #10B981;
   --chart-3: #A1A1AA;
   --chart-4: #F59E0B;
   --chart-5: #EF4444;
-  
-  --radius: 0.75rem;
-  
-  /* Sidebar colors for Sonix theme */
   --sidebar: #0E0E10;
   --sidebar-foreground: #FFFFFF;
   --sidebar-primary: #FFFFFF;
@@ -99,6 +134,17 @@ button {
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: #3F3F46;
   --sidebar-ring: #8B5CF6;
+  --sonix-black: #0E0E10;
+  --sonix-dark-card: #1A1A1D;
+  --sonix-primary-text: #FFFFFF;
+  --sonix-secondary-text: #A1A1AA;
+  --sonix-electric-purple: #8B5CF6;
+  --sonix-neon-green: #10B981;
+  --sonix-error-red: #EF4444;
+  --sonix-tag: #27272A;
+  --sonix-hover: #2A2A2D;
+  --sonix-table-hover: #1F1F23;
+  --sonix-border: #3F3F46;
 }
 
 @theme inline {
