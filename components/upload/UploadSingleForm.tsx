@@ -19,7 +19,6 @@ export default function UploadSingleForm() {
   const [releaseDate, setReleaseDate] = useState('')
   const [albumId, setAlbumId] = useState('')
   const [featuredArtists, setFeaturedArtists] = useState('')
-  const [language, setLanguage] = useState('')
   const [duration, setDuration] = useState('')
   const [published, setPublished] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -45,7 +44,7 @@ export default function UploadSingleForm() {
   const reset = () => {
     setTitle(''); setArtist(''); setCover(null); setAudio(null); setGenre('');
     setMood(''); setDescription(''); setLyrics(''); setReleaseDate('');
-    setAlbumId(''); setFeaturedArtists(''); setLanguage(''); setDuration('');
+    setAlbumId(''); setFeaturedArtists(''); setDuration('');
     setPublished(false)
   }
 
@@ -64,7 +63,6 @@ export default function UploadSingleForm() {
     fd.append('releaseDate', releaseDate)
     fd.append('albumId', albumId)
     fd.append('featuredArtists', featuredArtists)
-    fd.append('language', language)
     fd.append('duration', duration)
     if (published) fd.append('published', 'on')
 
@@ -153,10 +151,6 @@ export default function UploadSingleForm() {
       <div className="sonix-form-field">
         <label>Featured Artists</label>
         <Input value={featuredArtists} onChange={e => setFeaturedArtists(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Language</label>
-        <Input value={language} onChange={e => setLanguage(e.target.value)} />
       </div>
       <div className="sonix-form-field">
         <label className="flex items-center gap-2">

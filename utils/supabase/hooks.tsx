@@ -221,7 +221,6 @@ export const uploadTrack = async (trackData: {
   coverArt?: File;
   genre?: string;
   mood?: string;
-  language?: string;
   lyrics?: string;
   featured_artists?: string[];
 }) => {
@@ -241,7 +240,6 @@ export const uploadTrack = async (trackData: {
       cover_art_url: trackData.coverArt ? 'mock-cover-url' : null,
       genre: trackData.genre,
       mood: trackData.mood,
-      language: trackData.language,
       lyrics: trackData.lyrics,
       featured_artists: trackData.featured_artists,
       status: 'processing' as const,

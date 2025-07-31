@@ -18,7 +18,6 @@ export async function uploadSingleAction(formData: FormData) {
   const releaseDate = formData.get('releaseDate') as string
   const albumId = formData.get('albumId') as string
   const featuredArtists = formData.get('featuredArtists') as string
-  const language = formData.get('language') as string
   const duration = formData.get('duration') as string
   const published = formData.get('published') === 'on'
   const audio = formData.get('audio') as File
@@ -65,11 +64,9 @@ export async function uploadSingleAction(formData: FormData) {
     genres: genres.length ? genres : null,
     release_date: releaseDate || null,
     duration: durationSeconds,
-    language,
     is_published: published,
     audio_url: audioData.path,
-    cover_url: coverPath,
-    slug
+    cover_url: coverPath
   })
 
   if (insertError) return { success: false, message: insertError.message }
