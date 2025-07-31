@@ -664,3 +664,14 @@ a:hover {
 /* Neomorphism shadow */
 .neomorph { box-shadow: inset 4px 4px 8px rgba(0,0,0,0.3), inset -4px -4px 8px rgba(255,255,255,0.05); }
 
+/* Basic form layout used on the upload pages */
+.sonix-form-field {
+  @apply flex flex-col gap-2 mb-4;
+}
+
+.sonix-form-field input,
+.sonix-form-field select,
+.sonix-form-field textarea {
+  @apply w-full rounded-md bg-sonix-card border border-sonix px-3 py-2 text-sonix-primary;
+}
+
