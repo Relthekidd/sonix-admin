@@ -68,7 +68,8 @@ export async function uploadSingleAction(formData: FormData) {
     language,
     is_published: published,
     audio_url: audioData.path,
-    cover_url: coverPath
+    cover_url: coverPath,
+    slug
   })
 
   if (insertError) return { success: false, message: insertError.message }
