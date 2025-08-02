@@ -24,6 +24,16 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../utils/auth/AuthContext";
 import { ThemeToggle } from "../common/ThemeToggle";
+import { Input } from "../ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const navigationItems = [
   { icon: BarChart3, label: "Dashboard", path: "/" },
@@ -36,7 +46,7 @@ const navigationItems = [
 ];
 
 export function AdminLayout() {
-  const { session } = useAuth();
+  const { session, signOut } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -69,15 +79,52 @@ export function AdminLayout() {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-center px-2 py-1 text-xs">
             <span className="truncate">{session?.user?.email}</span>
-            <ThemeToggle />
           </div>
         </SidebarFooter>
       </Sidebar>
       <SidebarRail className="bg-sidebar" />
-      <SidebarInset className="p-6 overflow-y-auto">
-        <Outlet />
+      <SidebarInset className="flex flex-col">
+        <header className="flex h-14 shrink-0 items-center gap-4 border-b px-4">
+          <h2 className="text-lg font-semibold">Sonix Admin</h2>
+          <div className="ml-auto flex items-center gap-2">
+            <Input
+              type="search"
+              placeholder="Search"
+              className="w-32 sm:w-64 md:w-72"
+            />
+            <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-full focus:outline-none">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={session?.user?.user_metadata?.avatar_url}
+                      alt={session?.user?.email}
+                    />
+                    <AvatarFallback>
+                      {session?.user?.email?.charAt(0)?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>
+                  {session?.user?.email}
+                </DropdownMenuItem>
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+        <div className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
