@@ -55,10 +55,10 @@ export function AdminLayout() {
 
   return (
     <SidebarProvider className="flex min-h-screen bg-background text-foreground">
-      <Sidebar className="border-r border-border bg-sidebar">
+      <Sidebar collapsible="icon" className="border-r border-border bg-sidebar transition-all duration-300">
         <SidebarHeader className="flex items-center justify-between">
           <h1 className="px-2 text-xl font-semibold">Sonix Admin</h1>
-          <SidebarTrigger className="md:hidden" />
+          <SidebarTrigger />
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -87,6 +87,7 @@ export function AdminLayout() {
       <SidebarRail className="bg-sidebar" />
       <SidebarInset className="flex flex-col">
         <header className="flex h-14 shrink-0 items-center gap-4 border-b px-4">
+          <SidebarTrigger className="lg:hidden" />
           <h2 className="text-lg font-semibold">Sonix Admin</h2>
           <div className="ml-auto flex items-center gap-2">
             <Input
