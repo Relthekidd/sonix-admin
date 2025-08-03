@@ -16,12 +16,16 @@ export function UploadsPage() {
   const { data: uploads, loading } = useTracks();
   const navigate = useNavigate();
 
-  const filteredUploads = (uploads || []).filter(upload => {
+  const filteredUploads = (uploads || []).filter((upload) => {
+    const title = upload.title?.toLowerCase() || "";
+    const artist = upload.artist?.toLowerCase() || "";
+    const album = upload.album?.toLowerCase() || "";
+    const status = (upload.status || "unknown").toLowerCase();
+    const search = searchTerm.toLowerCase();
     const matchesSearch =
-      upload.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      upload.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      upload.album?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "All" || upload.status === statusFilter.toLowerCase();
+      title.includes(search) || artist.includes(search) || album.includes(search);
+    const matchesStatus =
+      statusFilter === "All" || status === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -126,75 +130,88 @@ export function UploadsPage() {
                     </td>
                   </tr>
                 )}
-                {!loading && filteredUploads.map((upload) => (
-                  <tr key={upload.id} className="border-b border-dark-color hover:bg-dark-table-hover transition-colors">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-dark-tag rounded-lg flex items-center justify-center">
-                          <Music className="w-4 h-4 text-dark-secondary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-dark-primary">{upload.title}</p>
-                          <p className="text-xs text-dark-secondary">{upload.album}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-dark-primary font-medium">
-                      {upload.artist}
-                    </td>
-                    <td className="py-4 px-4 text-dark-secondary">
-                      {upload.uploadDate}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(upload.status)}
-                        <span className={getStatusBadge(upload.status)}>
-                          {upload.status.charAt(0).toUpperCase() + upload.status.slice(1)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-dark-secondary">
-                      {upload.duration}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="text-dark-secondary">
-                        <div>{upload.format}</div>
-                        <div className="text-xs">{upload.quality}</div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-dark-primary font-medium">
-                      {upload.plays}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="p-2 hover:bg-dark-hover rounded-lg transition-colors">
-                            <MoreHorizontal className="w-4 h-4 text-dark-secondary" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-dark-card border-dark-color">
-                          <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
-                            Edit Metadata
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
-                            Download
-                          </DropdownMenuItem>
-                          {upload.status === "failed" && (
-                            <DropdownMenuItem className="text-blue-400 hover:bg-dark-hover">
-                              Retry Upload
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem className="text-red-400 hover:bg-dark-hover">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
+                {!loading &&
+                  filteredUploads.map((upload) => {
+                    const status = (upload.status || "unknown").toLowerCase();
+                    const formattedStatus =
+                      status.charAt(0).toUpperCase() + status.slice(1);
+                    return (
+                      <tr
+                        key={upload.id}
+                        className="border-b border-dark-color hover:bg-dark-table-hover transition-colors"
+                      >
+                        <td className="py-4 px-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-dark-tag rounded-lg flex items-center justify-center">
+                              <Music className="w-4 h-4 text-dark-secondary" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-dark-primary">
+                                {upload.title || "Untitled"}
+                              </p>
+                              <p className="text-xs text-dark-secondary">
+                                {upload.album || ""}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-dark-primary font-medium">
+                          {upload.artist || ""}
+                        </td>
+                        <td className="py-4 px-4 text-dark-secondary">
+                          {upload.uploadDate || ""}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center space-x-2">
+                            {getStatusIcon(status)}
+                            <span className={getStatusBadge(status)}>
+                              {formattedStatus}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-dark-secondary">
+                          {upload.duration || ""}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="text-dark-secondary">
+                            <div>{upload.format || ""}</div>
+                            <div className="text-xs">{upload.quality || ""}</div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-dark-primary font-medium">
+                          {upload.plays ?? ""}
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-2 hover:bg-dark-hover rounded-lg transition-colors">
+                                <MoreHorizontal className="w-4 h-4 text-dark-secondary" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-dark-card border-dark-color">
+                              <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
+                                Edit Metadata
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
+                                Download
+                              </DropdownMenuItem>
+                              {status === "failed" && (
+                                <DropdownMenuItem className="text-blue-400 hover:bg-dark-hover">
+                                  Retry Upload
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem className="text-red-400 hover:bg-dark-hover">
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
