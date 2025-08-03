@@ -8,8 +8,16 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 
-export function LoginModal() {
-  const [open, setOpen] = useState(false);
+interface LoginModalProps {
+  /**
+   * Whether the modal should be open on initial render.
+   * Defaults to `false` which keeps the modal closed until the trigger is used.
+   */
+  defaultOpen?: boolean;
+}
+
+export function LoginModal({ defaultOpen = false }: LoginModalProps) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
