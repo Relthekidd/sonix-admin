@@ -3,7 +3,7 @@ import { uploadSingleAction } from '../../app/actions/upload'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
-import { GlassForm } from '../common/GlassCard'
+import { GlassCard } from '../common/GlassCard'
 import { toast } from 'sonner'
 
 export default function UploadSingleForm() {
@@ -80,81 +80,113 @@ export default function UploadSingleForm() {
   }
 
   return (
-    <GlassForm onSubmit={onSubmit} className="space-y-6 text-lg">
-      <div className="sonix-form-field">
-        <label>Title</label>
-        <Input value={title} onChange={e => setTitle(e.target.value)} required />
-      </div>
-      <div className="sonix-form-field">
-        <label>Artist</label>
-        <input list="artists" value={artist} onChange={e => setArtist(e.target.value)} className="w-full border rounded px-2 py-1" />
-        <datalist id="artists">
-          {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </datalist>
-      </div>
-      <div className="sonix-form-field">
-        <label>Audio File</label>
-        <input type="file" accept="audio/*" onChange={e => e.target.files && handleAudio(e.target.files[0])} required />
-      </div>
-      <div className="sonix-form-field">
-        <label>Cover Art</label>
-        <input type="file" accept="image/*" onChange={e => setCover(e.target.files?.[0] || null)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Genre</label>
-        <select
-          value={genre}
-          onChange={e => setGenre(e.target.value)}
-          className="w-full border rounded px-3 py-2 bg-dark-card text-dark-primary"
+    <GlassCard className="p-6">
+      <form onSubmit={onSubmit} className="space-y-4 text-lg">
+        <div className="space-y-2">
+          <label htmlFor="title" className="text-sm font-medium">Title</label>
+          <Input id="title" value={title} onChange={e => setTitle(e.target.value)} required />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="artist" className="text-sm font-medium">Artist</label>
+          <input
+            id="artist"
+            list="artists"
+            value={artist}
+            onChange={e => setArtist(e.target.value)}
+            className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white"
+          />
+          <datalist id="artists">
+            {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </datalist>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="audio" className="text-sm font-medium">Audio File</label>
+          <input
+            id="audio"
+            type="file"
+            accept="audio/*"
+            onChange={e => e.target.files && handleAudio(e.target.files[0])}
+            required
+            className="w-full text-sm"
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="cover" className="text-sm font-medium">Cover Art</label>
+          <input
+            id="cover"
+            type="file"
+            accept="image/*"
+            onChange={e => setCover(e.target.files?.[0] || null)}
+            className="w-full text-sm"
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="genre" className="text-sm font-medium">Genre</label>
+          <select
+            id="genre"
+            value={genre}
+            onChange={e => setGenre(e.target.value)}
+            className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white"
+          >
+            <option value="">Select genre</option>
+            <option>Hip-Hop</option>
+            <option>R&B</option>
+            <option>EDM</option>
+            <option>Rock</option>
+            <option>Pop</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="mood" className="text-sm font-medium">Mood</label>
+          <select
+            id="mood"
+            value={mood}
+            onChange={e => setMood(e.target.value)}
+            className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white"
+          >
+            <option value="">Select mood</option>
+            <option>Hype</option>
+            <option>Chill</option>
+            <option>Romantic</option>
+            <option>Dark</option>
+            <option>Uplifting</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="description" className="text-sm font-medium">Description</label>
+          <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="lyrics" className="text-sm font-medium">Lyrics</label>
+          <Textarea id="lyrics" value={lyrics} onChange={e => setLyrics(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="releaseDate" className="text-sm font-medium">Release Date</label>
+          <Input id="releaseDate" type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="featuredArtists" className="text-sm font-medium">Featured Artists</label>
+          <Input id="featuredArtists" value={featuredArtists} onChange={e => setFeaturedArtists(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input
+              type="checkbox"
+              checked={published}
+              onChange={e => setPublished(e.target.checked)}
+              className="h-4 w-4"
+            />
+            Published
+          </label>
+        </div>
+        <button
+          disabled={pending}
+          className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50"
         >
-          <option value="">Select genre</option>
-          <option>Hip-Hop</option>
-          <option>R&B</option>
-          <option>EDM</option>
-          <option>Rock</option>
-          <option>Pop</option>
-        </select>
-      </div>
-      <div className="sonix-form-field">
-        <label>Mood</label>
-        <select
-          value={mood}
-          onChange={e => setMood(e.target.value)}
-          className="w-full border rounded px-3 py-2 bg-dark-card text-dark-primary"
-        >
-          <option value="">Select mood</option>
-          <option>Hype</option>
-          <option>Chill</option>
-          <option>Romantic</option>
-          <option>Dark</option>
-          <option>Uplifting</option>
-        </select>
-      </div>
-      <div className="sonix-form-field">
-        <label>Description</label>
-        <Textarea value={description} onChange={e => setDescription(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Lyrics</label>
-        <Textarea value={lyrics} onChange={e => setLyrics(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Release Date</label>
-        <Input type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Featured Artists</label>
-        <Input value={featuredArtists} onChange={e => setFeaturedArtists(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} /> Published
-        </label>
-      </div>
-      <button disabled={pending} className="sonix-button-primary flex items-center gap-2">
-        {pending && <span className="h-4 w-4 border-2 border-t-transparent rounded-full animate-spin" />}
-        Upload
-      </button>
-    </GlassForm>
+          {pending && <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />}
+          Upload
+        </button>
+      </form>
+    </GlassCard>
   )
 }

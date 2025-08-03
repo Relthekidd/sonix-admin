@@ -10,12 +10,15 @@ export function UploadPage() {
   const navigate = useNavigate()
 
   return (
-    <main className="glass-page space-y-6">
-      <button onClick={() => navigate(-1)} className="glass-back-button mb-4">
+    <main className="space-y-6 p-6">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 rounded-md bg-white/10 px-4 py-2 text-white transition hover:bg-white/20"
+      >
         ← Back
       </button>
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="single">Single</TabsTrigger>
           <TabsTrigger value="album">Album</TabsTrigger>
         </TabsList>

@@ -3,6 +3,7 @@ import { uploadAlbumAction } from '../../app/actions/upload'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
+import { GlassCard } from '../common/GlassCard'
 
 interface Track {
   title: string
@@ -68,71 +69,103 @@ export default function UploadAlbumForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      {message && <p className="text-sm">{message}</p>}
-      <div className="sonix-form-field">
-        <label>Album Title</label>
-        <Input value={title} onChange={e => setTitle(e.target.value)} required />
-      </div>
-      <div className="sonix-form-field">
-        <label>Artist</label>
-        <input list="album-artists" value={artist} onChange={e => setArtist(e.target.value)} className="w-full border rounded px-2 py-1" />
-        <datalist id="album-artists">
-          {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </datalist>
-      </div>
-      <div className="sonix-form-field">
-        <label>Cover</label>
-        <input type="file" accept="image/*" onChange={e => setCover(e.target.files?.[0] || null)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Release Date</label>
-        <Input type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Genre</label>
-        <Input value={genre} onChange={e => setGenre(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Description</label>
-        <Textarea value={description} onChange={e => setDescription(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label>Album ID</label>
-        <Input value={albumId} onChange={e => setAlbumId(e.target.value)} />
-      </div>
-      <div className="sonix-form-field">
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} /> Published
-        </label>
-      </div>
-      <div className="space-y-4">
-        {tracks.map((t, idx) => (
-          <div key={idx} className="p-4 border rounded space-y-2">
-            <div className="sonix-form-field">
-              <label>Track Title</label>
-              <Input value={t.title} onChange={e => updateTrack(idx, 'title', e.target.value)} required />
+    <GlassCard className="p-6">
+      <form onSubmit={onSubmit} className="space-y-4">
+        {message && <p className="text-sm">{message}</p>}
+        <div className="space-y-2">
+          <label htmlFor="albumTitle" className="text-sm font-medium">Album Title</label>
+          <Input id="albumTitle" value={title} onChange={e => setTitle(e.target.value)} required />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="albumArtist" className="text-sm font-medium">Artist</label>
+          <input
+            id="albumArtist"
+            list="album-artists"
+            value={artist}
+            onChange={e => setArtist(e.target.value)}
+            className="w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white"
+          />
+          <datalist id="album-artists">
+            {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </datalist>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="cover" className="text-sm font-medium">Cover</label>
+          <input
+            id="cover"
+            type="file"
+            accept="image/*"
+            onChange={e => setCover(e.target.files?.[0] || null)}
+            className="w-full text-sm"
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="releaseDate" className="text-sm font-medium">Release Date</label>
+          <Input id="releaseDate" type="date" value={releaseDate} onChange={e => setReleaseDate(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="genre" className="text-sm font-medium">Genre</label>
+          <Input id="genre" value={genre} onChange={e => setGenre(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="description" className="text-sm font-medium">Description</label>
+          <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="albumId" className="text-sm font-medium">Album ID</label>
+          <Input id="albumId" value={albumId} onChange={e => setAlbumId(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input
+              type="checkbox"
+              checked={published}
+              onChange={e => setPublished(e.target.checked)}
+              className="h-4 w-4"
+            />
+            Published
+          </label>
+        </div>
+        <div className="space-y-4">
+          {tracks.map((t, idx) => (
+            <div key={idx} className="space-y-4 rounded-lg border border-white/20 p-4">
+              <div className="space-y-2">
+                <label htmlFor={`track-title-${idx}`} className="text-sm font-medium">Track Title</label>
+                <Input id={`track-title-${idx}`} value={t.title} onChange={e => updateTrack(idx, 'title', e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor={`track-audio-${idx}`} className="text-sm font-medium">Audio</label>
+                <input
+                  id={`track-audio-${idx}`}
+                  type="file"
+                  accept="audio/*"
+                  onChange={e => e.target.files && handleTrackFile(idx, e.target.files[0])}
+                  required
+                  className="w-full text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor={`track-lyrics-${idx}`} className="text-sm font-medium">Lyrics</label>
+                <Textarea id={`track-lyrics-${idx}`} value={t.lyrics} onChange={e => updateTrack(idx, 'lyrics', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor={`track-featured-${idx}`} className="text-sm font-medium">Featured Artists</label>
+                <Input id={`track-featured-${idx}`} value={t.featuredArtists} onChange={e => updateTrack(idx, 'featuredArtists', e.target.value)} />
+              </div>
+              {tracks.length > 1 && (
+                <button type="button" className="text-sm" onClick={() => removeTrack(idx)}>Remove</button>
+              )}
             </div>
-            <div className="sonix-form-field">
-              <label>Audio</label>
-              <input type="file" accept="audio/*" onChange={e => e.target.files && handleTrackFile(idx, e.target.files[0])} required />
-            </div>
-            <div className="sonix-form-field">
-              <label>Lyrics</label>
-              <Textarea value={t.lyrics} onChange={e => updateTrack(idx, 'lyrics', e.target.value)} />
-            </div>
-            <div className="sonix-form-field">
-              <label>Featured Artists</label>
-              <Input value={t.featuredArtists} onChange={e => updateTrack(idx, 'featuredArtists', e.target.value)} />
-            </div>
-            {tracks.length > 1 && (
-              <button type="button" className="text-sm" onClick={() => removeTrack(idx)}>Remove</button>
-            )}
-          </div>
-        ))}
-        <button type="button" className="text-sm" onClick={addTrack}>Add Track</button>
-      </div>
-      <button disabled={pending} className="sonix-button-primary">Upload Album</button>
-    </form>
+          ))}
+          <button type="button" className="text-sm" onClick={addTrack}>Add Track</button>
+        </div>
+        <button
+          disabled={pending}
+          className="rounded-lg bg-white/10 px-4 py-2 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50"
+        >
+          Upload Album
+        </button>
+      </form>
+    </GlassCard>
   )
 }
