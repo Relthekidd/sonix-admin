@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,6 +7,9 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { useAuth } from "../../utils/auth/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface LoginModalProps {
   /**
@@ -22,6 +25,26 @@ interface LoginModalProps {
 
 export function LoginModal({ defaultOpen = false, showTrigger = true }: LoginModalProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      setSubmitting(true);
+      await signIn(email, password);
+      toast.success("Logged in");
+      setOpen(false);
+      navigate("/");
+    } catch (err: any) {
+      toast.error(err.message || "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -41,15 +64,17 @@ export function LoginModal({ defaultOpen = false, showTrigger = true }: LoginMod
             Sign In
           </DialogTitle>
         </DialogHeader>
-        <form className="flex flex-col gap-5 mt-6">
+        <form className="flex flex-col gap-5 mt-6" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1">
-            <label htmlFor="username" className="sr-only">
-              Username
+            <label htmlFor="email" className="sr-only">
+              Email
             </label>
             <Input
-              id="username"
-              type="text"
-              placeholder="Username"
+              id="email"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="px-4 py-3 text-white border shadow-inner  bg-white/30 border-white/40 rounded-xl placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/40"
             />
           </div>
@@ -61,14 +86,17 @@ export function LoginModal({ defaultOpen = false, showTrigger = true }: LoginMod
               id="password"
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="px-4 py-3 text-white border shadow-inner  bg-white/30 border-white/40 rounded-xl placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/40"
             />
           </div>
           <button
             type="submit"
-            className="w-full px-4 py-3 mt-2 font-semibold text-white transition border shadow  rounded-xl border-white/40 bg-white/30 backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/40 hover:bg-white/50 hover:text-black hover:shadow-2xl active:scale-95"
+            disabled={submitting}
+            className="w-full px-4 py-3 mt-2 font-semibold text-white transition border shadow  rounded-xl border-white/40 bg-white/30 backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/40 hover:bg-white/50 hover:text-black hover:shadow-2xl active:scale-95 disabled:opacity-50"
           >
-            Submit
+            {submitting ? "Signing in..." : "Submit"}
           </button>
         </form>
         {/* Optionally: Add a divider and social login buttons below */}
