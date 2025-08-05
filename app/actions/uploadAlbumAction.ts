@@ -21,12 +21,16 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
   const mainArtistId = formData.get('mainArtistId') as string
   const releaseDate = (formData.get('releaseDate') as string) || undefined
   const coverFile = formData.get('cover') as File | null
+  const featuredArtistsRaw = formData.get('featuredArtists') as string | null
+  const albumFeaturedArtistIds = featuredArtistsRaw
+    ? (JSON.parse(featuredArtistsRaw) as string[])
+    : []
 
   // Track metadata is expected as a JSON string under 'tracks'
   const tracksMeta = JSON.parse(formData.get('tracks') as string) as Array<{
     title: string
     lyrics?: string
-    featuredArtists?: string // comma-separated UUIDs
+    featuredArtistIds: string[]
   }>
 
   try {
@@ -36,6 +40,7 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       .insert({
         title,
         main_artist_id: mainArtistId,
+        featured_artist_ids: albumFeaturedArtistIds,
         release_date: releaseDate,
         created_by: userId,
       })
@@ -78,9 +83,7 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       }
 
       // 5b. Parse featured artists array
-      const featuredArtistIds = meta.featuredArtists
-        ? meta.featuredArtists.split(',').map((id) => id.trim())
-        : []
+      const featuredArtistIds = meta.featuredArtistIds || []
 
       // 5c. Insert the track row (with its audio_url)
       const { error: trackError } = await supabase

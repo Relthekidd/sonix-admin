@@ -28,9 +28,31 @@ export const useTracks = (): UseQueryResult<Track[]> => {
     setError(null);
     const { data: tracks, error } = await supabase
       .from('tracks')
-      .select('*');
+      .select('*, artist:artist_id (id, name), featured_artist_ids');
     if (error) setError(error.message);
-    setData(tracks ?? null);
+    if (tracks) {
+      const allIds = Array.from(
+        new Set(tracks.flatMap(t => t.featured_artist_ids || []))
+      );
+      let artistMap = new Map<string, { id: string; name: string }>();
+      if (allIds.length) {
+        const { data: fas } = await supabase
+          .from('artists')
+          .select('id, name')
+          .in('id', allIds);
+        artistMap = new Map((fas || []).map(a => [a.id, a]));
+      }
+      setData(
+        tracks.map(t => ({
+          ...t,
+          featuredArtists: (t.featured_artist_ids || [])
+            .map((id: string) => artistMap.get(id))
+            .filter(Boolean),
+        })) as any
+      );
+    } else {
+      setData(null);
+    }
     setLoading(false);
   };
 
@@ -51,11 +73,33 @@ export const useRecentTracks = (limit: number = 10): UseQueryResult<Track[]> => 
     setError(null);
     const { data: tracks, error } = await supabase
       .from('tracks')
-      .select('*')
+      .select('*, artist:artist_id (id, name), featured_artist_ids')
       .order('created_at', { ascending: false })
       .limit(limit);
     if (error) setError(error.message);
-    setData(tracks ?? null);
+    if (tracks) {
+      const allIds = Array.from(
+        new Set(tracks.flatMap(t => t.featured_artist_ids || []))
+      );
+      let artistMap = new Map<string, { id: string; name: string }>();
+      if (allIds.length) {
+        const { data: fas } = await supabase
+          .from('artists')
+          .select('id, name')
+          .in('id', allIds);
+        artistMap = new Map((fas || []).map(a => [a.id, a]));
+      }
+      setData(
+        tracks.map(t => ({
+          ...t,
+          featuredArtists: (t.featured_artist_ids || [])
+            .map((id: string) => artistMap.get(id))
+            .filter(Boolean),
+        })) as any
+      );
+    } else {
+      setData(null);
+    }
     setLoading(false);
   };
 
@@ -64,6 +108,51 @@ export const useRecentTracks = (limit: number = 10): UseQueryResult<Track[]> => 
   }, [limit]);
 
   return { data, loading, error, refetch: fetchRecentTracks };
+};
+
+export const useAlbums = (): UseQueryResult<Album[]> => {
+  const [data, setData] = useState<Album[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAlbums = async () => {
+    setLoading(true);
+    setError(null);
+    const { data: albums, error } = await supabase
+      .from('albums')
+      .select('*, main_artist:main_artist_id (id, name), featured_artist_ids');
+    if (error) setError(error.message);
+    if (albums) {
+      const allIds = Array.from(
+        new Set(albums.flatMap(a => a.featured_artist_ids || []))
+      );
+      let artistMap = new Map<string, { id: string; name: string }>();
+      if (allIds.length) {
+        const { data: fas } = await supabase
+          .from('artists')
+          .select('id, name')
+          .in('id', allIds);
+        artistMap = new Map((fas || []).map(a => [a.id, a]));
+      }
+      setData(
+        albums.map(a => ({
+          ...a,
+          featuredArtists: (a.featured_artist_ids || [])
+            .map((id: string) => artistMap.get(id))
+            .filter(Boolean),
+        })) as any
+      );
+    } else {
+      setData(null);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAlbums();
+  }, []);
+
+  return { data, loading, error, refetch: fetchAlbums };
 };
 
 // Artists hooks
@@ -222,7 +311,7 @@ export const uploadTrack = async (trackData: {
   genre?: string;
   mood?: string;
   lyrics?: string;
-  featured_artists?: string[];
+  featured_artist_ids?: string[];
 }) => {
   try {
     // For demo purposes, simulate upload success
@@ -241,7 +330,7 @@ export const uploadTrack = async (trackData: {
       genre: trackData.genre,
       mood: trackData.mood,
       lyrics: trackData.lyrics,
-      featured_artists: trackData.featured_artists,
+      featured_artist_ids: trackData.featured_artist_ids,
       status: 'processing' as const,
       play_count: 0,
       created_at: new Date().toISOString(),
@@ -263,7 +352,7 @@ export const uploadAlbum = async (albumData: {
   tracks: Array<{
     title: string;
     audioFile: File;
-    featured_artists?: string[];
+    featured_artist_ids?: string[];
   }>;
 }) => {
   try {

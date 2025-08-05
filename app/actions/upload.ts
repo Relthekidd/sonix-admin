@@ -28,7 +28,7 @@ export async function uploadSingleAction(
   const description = formData.get('description') as string
   const lyrics = formData.get('lyrics') as string
   const releaseDate = formData.get('releaseDate') as string
-  const featuredArtists = formData.get('featuredArtists') as string
+  const featuredArtistsRaw = formData.get('featuredArtists') as string | null
   const duration = formData.get('duration') as string
   const published = formData.get('published') === 'on'
   const audio = formData.get('audio') as File
@@ -60,9 +60,9 @@ export async function uploadSingleAction(
   }
 
   // Parse featured artist IDs
-  const featuredArtistIds = featuredArtists
-    ? featuredArtists.split(',').map(id => id.trim()).filter(Boolean)
-    : null
+  const featuredArtistIds = featuredArtistsRaw
+    ? (JSON.parse(featuredArtistsRaw) as string[])
+    : []
 
   // Parse duration to seconds
   const durationSeconds = (() => {
@@ -85,7 +85,7 @@ export async function uploadSingleAction(
     cover_url: coverPath,
     description,
     lyrics,
-    featured_artist_ids: featuredArtistIds,
+    featured_artist_ids: featuredArtistIds.length ? featuredArtistIds : null,
     release_date: releaseDate || null,
     duration: durationSeconds,
     genres,
