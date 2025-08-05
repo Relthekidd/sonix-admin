@@ -11,11 +11,18 @@ export type ArtistVerificationRequest = any
 export interface Profile {
   id: string
   username: string
-  first_name: string
-  last_name: string
   email: string
-  avatar_url?: string
+  role: string
   created_at: string
+  is_private: boolean
+  display_name?: string
+  bio?: string
+  avatar_url?: string
+  follower_count?: number
+  following_count?: number
+  top_artists?: any
+  top_songs?: any
+  last_login?: string
 }
 
 export const supabase = createClient(
