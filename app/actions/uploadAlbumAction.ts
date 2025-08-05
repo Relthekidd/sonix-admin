@@ -1,4 +1,4 @@
-'use server'
+// ── app/actions/uploadAlbumAction.ts ──
 
 import { supabaseAdmin } from '../../utils/supabase/serverClient'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
@@ -6,114 +6,103 @@ import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 const getSupabase = () =>
   typeof window === 'undefined' ? supabaseAdmin() : supabaseBrowser()
 
-export async function uploadAlbumAction(
-  formData: FormData
-): Promise<{ success: boolean; message?: string }> {
-  const supabase = getSupabase()
-  const { data: authData, error: authError } = await supabase.auth.getUser()
-  if (authError) {
-    console.error('Auth fetch error:', authError.message)
-    return { success: false, message: authError.message }
-  }
-  const userId = authData?.user?.id || null
+type Result = { success: true } | { success: false; message: string }
 
+export async function uploadAlbumAction(formData: FormData): Promise<Result> {
+  const supabase = getSupabase()
+
+  // 1. Get the current user
+  const { data: authData, error: authError } = await supabase.auth.getUser()
+  if (authError) return { success: false, message: authError.message }
+  const userId = authData.user!.id
+
+  // 2. Extract album fields
   const title = formData.get('title') as string
-  const artistId = formData.get('main_artist_id') as string
-  const releaseDate = formData.get('releaseDate') as string
+  const mainArtistId = formData.get('mainArtistId') as string
+  const releaseDate = (formData.get('releaseDate') as string) || undefined
   const coverFile = formData.get('cover') as File | null
+
+  // Track metadata is expected as a JSON string under 'tracks'
   const tracksMeta = JSON.parse(formData.get('tracks') as string) as Array<{
     title: string
-    lyrics: string
-    featuredArtists: string
+    lyrics?: string
+    featuredArtists?: string // comma-separated UUIDs
   }>
 
-  // create empty album row to get id
-  const { data: albumData, error: albumError } = await supabase
-    .from('albums')
-    .insert({
-      title,
-      artist_id: artistId,
-      release_date: releaseDate || null,
-      created_by: userId,
-    })
-    .select('id')
-    .single()
-  if (albumError) {
-    console.error('Album insert error:', albumError.message)
-    return { success: false, message: albumError.message }
-  }
-  const albumId = albumData.id
-
-  // upload cover art using album id
-  let coverUrl: string | null = null
-  if (coverFile) {
-    const ext = coverFile.name.split('.').pop() || 'jpg'
-    const path = `covers/${albumId}.${ext}`
-    const { data: coverData, error: coverError } = await supabase.storage
-      .from('images')
-      .upload(path, coverFile, { upsert: true })
-    if (coverError) {
-      console.error('Cover upload error:', coverError.message)
-      return { success: false, message: coverError.message }
-    }
-    coverUrl = coverData.path
-    const { error: updateError } = await supabase
-      .from('albums')
-      .update({ cover_url: coverUrl })
-      .eq('id', albumId)
-    if (updateError) {
-      console.error('Album cover update error:', updateError.message)
-      return { success: false, message: updateError.message }
-    }
-  }
-
-  // insert tracks and upload audio files in parallel
   try {
-    await Promise.all(
-      tracksMeta.map(async (meta, index) => {
-        const featuredIds = meta.featuredArtists
-          ? meta.featuredArtists.split(',').map(id => id.trim()).filter(Boolean)
-          : null
-
-        // insert track row to get id
-        const { data: trackData, error: trackInsertError } = await supabase
-          .from('tracks')
-          .insert({
-            title: meta.title,
-            lyrics: meta.lyrics,
-            featured_artist_ids: featuredIds,
-            album_id: albumId,
-            track_number: index + 1,
-            cover_url: coverUrl,
-            created_by: userId,
-          })
-          .select('id')
-          .single()
-        if (trackInsertError) throw new Error(trackInsertError.message)
-        const trackId = trackData.id
-
-        // upload audio file
-        const file = formData.get(`trackFile${index}`) as File | null
-        if (!file) return
-        const ext = file.name.split('.').pop() || 'mp3'
-        const audioPath = `track/${albumId}/${trackId}.${ext}`
-        const { data: audioData, error: audioError } = await supabase.storage
-          .from('audio-files')
-          .upload(audioPath, file, { upsert: true })
-        if (audioError) throw new Error(audioError.message)
-
-        const { error: audioUpdateError } = await supabase
-          .from('tracks')
-          .update({ audio_url: audioData.path })
-          .eq('id', trackId)
-        if (audioUpdateError) throw new Error(audioUpdateError.message)
+    // 3. Insert the album record
+    const { data: albumData, error: albumError } = await supabase
+      .from('albums')
+      .insert({
+        title,
+        main_artist_id: mainArtistId,
+        release_date: releaseDate,
+        created_by: userId,
       })
-    )
+      .select('id')
+      .single()
+    if (albumError || !albumData) throw new Error(albumError?.message ?? 'Failed to create album')
+    const albumId = albumData.id
+
+    // 4. Upload & set the album cover (if provided)
+    let coverPath: string | null = null
+    if (coverFile) {
+      const ext = coverFile.name.split('.').pop() ?? 'jpg'
+      coverPath = `album_covers/${albumId}/${Date.now()}.${ext}`
+
+      const { data: coverData, error: coverError } = await supabase.storage
+        .from('images')
+        .upload(coverPath, coverFile)
+      if (coverError) throw new Error(coverError.message)
+
+      await supabase
+        .from('albums')
+        .update({ cover_url: coverData.path })
+        .eq('id', albumId)
+    }
+
+    // 5. For each track: upload audio first, then insert the track row
+    for (let i = 0; i < tracksMeta.length; i++) {
+      const meta = tracksMeta[i]
+      const file = formData.get(`trackFile${i}`) as File | null
+
+      // 5a. Upload audio file
+      let audioPath = ''
+      if (file) {
+        const ext = file.name.split('.').pop() ?? 'mp3'
+        audioPath = `audio/${albumId}/${Date.now()}_${i}.${ext}`
+        const { error: audioError } = await supabase.storage
+          .from('audio-files')
+          .upload(audioPath, file)
+        if (audioError) throw new Error(audioError.message)
+      }
+
+      // 5b. Parse featured artists array
+      const featuredArtistIds = meta.featuredArtists
+        ? meta.featuredArtists.split(',').map((id) => id.trim())
+        : []
+
+      // 5c. Insert the track row (with its audio_url)
+      const { error: trackError } = await supabase
+        .from('tracks')
+        .insert({
+          title: meta.title,
+          lyrics: meta.lyrics ?? null,
+          featured_artist_ids: featuredArtistIds,
+          album_id: albumId,
+          track_number: i + 1,
+          cover_url: coverPath,
+          audio_url: audioPath,
+          created_by: userId,
+        })
+      if (trackError) throw new Error(trackError.message)
+    }
+
+    return { success: true }
   } catch (err: any) {
-    console.error('Track upload error:', err.message)
+    console.error('Upload album error:', err.message)
     return { success: false, message: err.message }
   }
-
-  return { success: true }
 }
 
+export default uploadAlbumAction
