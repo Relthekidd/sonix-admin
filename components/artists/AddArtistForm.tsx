@@ -1,12 +1,11 @@
 import { useState, useTransition } from 'react'
-// assume the default export from actions/upload is the artist upload action
-import uploadArtistAction from '../../app/actions/upload'
+import { uploadArtistAction } from '../../app/actions/upload'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { GlassCard } from '../common/GlassCard'
 
-export default function UploadArtistForm() {
+export function AddArtistForm() {
   // Form state
   const [name, setName] = useState('')
   const [bio, setBio] = useState('')
@@ -174,3 +173,5 @@ export default function UploadArtistForm() {
     </GlassCard>
   )
 }
+
+export default AddArtistForm
