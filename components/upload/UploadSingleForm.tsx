@@ -4,6 +4,8 @@ import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { GlassCard } from '../common/GlassCard'
+import { Button } from '../ui/button'
+import ArtistMultiSelect from '../common/ArtistMultiSelect'
 import { toast } from 'sonner'
 
 export default function UploadSingleForm() {
@@ -17,7 +19,7 @@ export default function UploadSingleForm() {
   const [description, setDescription] = useState('')
   const [lyrics, setLyrics] = useState('')
   const [releaseDate, setReleaseDate] = useState('')
-  const [featuredArtists, setFeaturedArtists] = useState('')
+  const [featuredArtistIds, setFeaturedArtistIds] = useState<string[]>([])
   const [duration, setDuration] = useState('')
   const [published, setPublished] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -43,7 +45,7 @@ export default function UploadSingleForm() {
   const reset = () => {
     setTitle(''); setArtist(''); setCover(null); setAudio(null); setGenre('');
     setMood(''); setDescription(''); setLyrics(''); setReleaseDate('');
-    setFeaturedArtists(''); setDuration('');
+    setFeaturedArtistIds([]); setDuration('');
     setPublished(false)
   }
 
@@ -60,7 +62,7 @@ export default function UploadSingleForm() {
     fd.append('description', description)
     fd.append('lyrics', lyrics)
     fd.append('releaseDate', releaseDate)
-    fd.append('featuredArtists', featuredArtists)
+    fd.append('featuredArtists', JSON.stringify(featuredArtistIds))
     fd.append('duration', duration)
     if (published) fd.append('published', 'on')
 
@@ -187,12 +189,12 @@ export default function UploadSingleForm() {
           />
         </div>
         <div className="space-y-3">
-          <label htmlFor="featuredArtists" className="text-lg font-medium">Featured Artists</label>
-          <Input
-            id="featuredArtists"
-            value={featuredArtists}
-            onChange={e => setFeaturedArtists(e.target.value)}
-            className="h-12 px-4 text-lg"
+          <label className="text-lg font-medium">Featured Artists</label>
+          <ArtistMultiSelect
+            artists={artists}
+            selectedIds={featuredArtistIds}
+            onChange={setFeaturedArtistIds}
+            placeholder="Search artists"
           />
         </div>
         <div className="space-y-3">
@@ -206,13 +208,14 @@ export default function UploadSingleForm() {
             Published
           </label>
         </div>
-        <button
+        <Button
+          type="submit"
           disabled={pending}
           className="flex items-center gap-3 rounded-lg bg-white/10 px-6 py-3 text-lg text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50"
         >
           {pending && <span className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />}
           Upload
-        </button>
+        </Button>
       </form>
     </GlassCard>
   )

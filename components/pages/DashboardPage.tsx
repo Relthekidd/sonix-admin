@@ -340,6 +340,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           </p>
                           <p className="glassmorphism-track-artist">
                             by {track.artist?.name || 'Unknown Artist'}
+                            {track.featuredArtists && track.featuredArtists.length > 0 && (
+                              <span>
+                                {' '}
+                                ft. {track.featuredArtists.map((a: any) => a.name).join(' & ')}
+                              </span>
+                            )}
                           </p>
                         </div>
                         <div className="glassmorphism-track-meta">

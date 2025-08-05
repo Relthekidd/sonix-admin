@@ -4,13 +4,15 @@ import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { GlassCard } from '../common/GlassCard'
+import { Button } from '../ui/button'
+import ArtistMultiSelect from '../common/ArtistMultiSelect'
 import { toast } from 'sonner'
 
 interface Track {
   title: string
   file: File | null
   lyrics: string
-  featuredArtists: string
+  featuredArtistIds: string[]
 }
 
 export default function UploadAlbumForm() {
@@ -19,7 +21,10 @@ export default function UploadAlbumForm() {
   const [artists, setArtists] = useState<Array<{ id: string; name: string }>>([])
   const [cover, setCover] = useState<File | null>(null)
   const [releaseDate, setReleaseDate] = useState('')
-  const [tracks, setTracks] = useState<Track[]>([{ title: '', file: null, lyrics: '', featuredArtists: '' }])
+  const [featuredArtistIds, setFeaturedArtistIds] = useState<string[]>([])
+  const [tracks, setTracks] = useState<Track[]>([
+    { title: '', file: null, lyrics: '', featuredArtistIds: [] },
+  ])
   const { uploadAlbum, pending } = useAlbumUpload()
 
   useEffect(() => {
@@ -34,7 +39,11 @@ export default function UploadAlbumForm() {
     setTracks(tracks => tracks.map((t, i) => i === idx ? { ...t, [field]: value } : t))
   }
 
-  const addTrack = () => setTracks([...tracks, { title: '', file: null, lyrics: '', featuredArtists: '' }])
+  const addTrack = () =>
+    setTracks([
+      ...tracks,
+      { title: '', file: null, lyrics: '', featuredArtistIds: [] },
+    ])
   const removeTrack = (idx: number) => setTracks(tracks.filter((_, i) => i !== idx))
 
   const reset = () => {
@@ -42,7 +51,8 @@ export default function UploadAlbumForm() {
     setMainArtistId('')
     setCover(null)
     setReleaseDate('')
-    setTracks([{ title: '', file: null, lyrics: '', featuredArtists: '' }])
+    setFeaturedArtistIds([])
+    setTracks([{ title: '', file: null, lyrics: '', featuredArtistIds: [] }])
   }
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -52,13 +62,14 @@ export default function UploadAlbumForm() {
     fd.append('main_artist_id', mainArtistId)
     if (cover) fd.append('cover', cover)
     fd.append('releaseDate', releaseDate)
+    fd.append('featuredArtists', JSON.stringify(featuredArtistIds))
     fd.append(
       'tracks',
       JSON.stringify(
         tracks.map(t => ({
           title: t.title,
           lyrics: t.lyrics,
-          featuredArtists: t.featuredArtists,
+          featuredArtistIds: t.featuredArtistIds,
         }))
       )
     )
@@ -122,6 +133,16 @@ export default function UploadAlbumForm() {
           />
         </div>
 
+        <div className="space-y-3">
+          <label className="text-lg font-medium">Featured Artists</label>
+          <ArtistMultiSelect
+            artists={artists}
+            selectedIds={featuredArtistIds}
+            onChange={setFeaturedArtistIds}
+            placeholder="Search artists"
+          />
+        </div>
+
         <div className="space-y-6">
           {tracks.map((t, idx) => (
             <div key={idx} className="space-y-6 rounded-lg border border-white/20 p-6">
@@ -156,32 +177,33 @@ export default function UploadAlbumForm() {
                 />
               </div>
               <div className="space-y-3">
-                <label htmlFor={`track-featured-${idx}`} className="text-lg font-medium">Featured Artists</label>
-                <Input
-                  id={`track-featured-${idx}`}
-                  value={t.featuredArtists}
-                  onChange={e => updateTrack(idx, 'featuredArtists', e.target.value)}
-                  className="h-12 px-4 text-lg"
+                <label className="text-lg font-medium">Featured Artists</label>
+                <ArtistMultiSelect
+                  artists={artists}
+                  selectedIds={t.featuredArtistIds}
+                  onChange={ids => updateTrack(idx, 'featuredArtistIds', ids)}
+                  placeholder="Search artists"
                 />
               </div>
               {tracks.length > 1 && (
-                <button type="button" className="text-lg" onClick={() => removeTrack(idx)}>
+                <Button type="button" className="text-lg" onClick={() => removeTrack(idx)}>
                   Remove
-                </button>
+                </Button>
               )}
             </div>
           ))}
-          <button type="button" className="text-lg" onClick={addTrack}>
+          <Button type="button" className="text-lg" onClick={addTrack}>
             Add Track
-          </button>
+          </Button>
         </div>
-        <button
+        <Button
+          type="submit"
           disabled={pending}
           className="flex items-center gap-3 rounded-lg bg-white/10 px-6 py-3 text-lg text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50"
         >
           {pending && <span className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />}
           Upload Album
-        </button>
+        </Button>
       </form>
     </GlassCard>
   )
