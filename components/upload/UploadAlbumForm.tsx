@@ -14,14 +14,10 @@ interface Track {
 
 export default function UploadAlbumForm() {
   const [title, setTitle] = useState('')
-  const [artist, setArtist] = useState('')
+  const [mainArtistId, setMainArtistId] = useState('')
   const [artists, setArtists] = useState<Array<{ id: string; name: string }>>([])
   const [cover, setCover] = useState<File | null>(null)
   const [releaseDate, setReleaseDate] = useState('')
-  const [genre, setGenre] = useState('')
-  const [description, setDescription] = useState('')
-  const [albumId, setAlbumId] = useState('')
-  const [published, setPublished] = useState(false)
   const [tracks, setTracks] = useState<Track[]>([{ title: '', file: null, lyrics: '', featuredArtists: '' }])
   const [message, setMessage] = useState('')
   const [pending, startTransition] = useTransition()
@@ -42,21 +38,20 @@ export default function UploadAlbumForm() {
   const removeTrack = (idx: number) => setTracks(tracks.filter((_, i) => i !== idx))
 
   const reset = () => {
-    setTitle(''); setArtist(''); setCover(null); setReleaseDate(''); setGenre('');
-    setDescription(''); setAlbumId(''); setPublished(false); setTracks([{ title: '', file: null, lyrics: '', featuredArtists: '' }])
+    setTitle('')
+    setMainArtistId('')
+    setCover(null)
+    setReleaseDate('')
+    setTracks([{ title: '', file: null, lyrics: '', featuredArtists: '' }])
   }
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const fd = new FormData()
     fd.append('title', title)
-    fd.append('artist', artist)
+    fd.append('main_artist_id', mainArtistId)
     if (cover) fd.append('cover', cover)
     fd.append('releaseDate', releaseDate)
-    fd.append('genre', genre)
-    fd.append('description', description)
-    fd.append('albumId', albumId)
-    if (published) fd.append('published', 'on')
     fd.append('tracks', JSON.stringify(tracks.map(t => ({ title: t.title, lyrics: t.lyrics, featuredArtists: t.featuredArtists }))))
     tracks.forEach((t, idx) => {
       if (t.file) fd.append(`trackFile${idx}`, t.file)
@@ -84,16 +79,17 @@ export default function UploadAlbumForm() {
         </div>
         <div className="space-y-3">
           <label htmlFor="albumArtist" className="text-lg font-medium">Artist</label>
-          <input
+          <select
             id="albumArtist"
-            list="album-artists"
-            value={artist}
-            onChange={e => setArtist(e.target.value)}
+            value={mainArtistId}
+            onChange={e => setMainArtistId(e.target.value)}
             className="w-full rounded-md border border-white/20 bg-white/10 px-4 py-3 text-lg text-white"
-          />
-          <datalist id="album-artists">
-            {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </datalist>
+          >
+            <option value="">Select an artist</option>
+            {artists.map(a => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+          </select>
         </div>
         <div className="space-y-3">
           <label htmlFor="cover" className="text-lg font-medium">Cover</label>
@@ -115,44 +111,7 @@ export default function UploadAlbumForm() {
             className="h-12 px-4 text-lg"
           />
         </div>
-        <div className="space-y-3">
-          <label htmlFor="genre" className="text-lg font-medium">Genre</label>
-          <Input
-            id="genre"
-            value={genre}
-            onChange={e => setGenre(e.target.value)}
-            className="h-12 px-4 text-lg"
-          />
-        </div>
-        <div className="space-y-3">
-          <label htmlFor="description" className="text-lg font-medium">Description</label>
-          <Textarea
-            id="description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            className="min-h-32 px-4 py-3 text-lg"
-          />
-        </div>
-        <div className="space-y-3">
-          <label htmlFor="albumId" className="text-lg font-medium">Album ID</label>
-          <Input
-            id="albumId"
-            value={albumId}
-            onChange={e => setAlbumId(e.target.value)}
-            className="h-12 px-4 text-lg"
-          />
-        </div>
-        <div className="space-y-3">
-          <label className="flex items-center gap-3 text-lg font-medium">
-            <input
-              type="checkbox"
-              checked={published}
-              onChange={e => setPublished(e.target.checked)}
-              className="h-5 w-5"
-            />
-            Published
-          </label>
-        </div>
+
         <div className="space-y-6">
           {tracks.map((t, idx) => (
             <div key={idx} className="space-y-6 rounded-lg border border-white/20 p-6">
