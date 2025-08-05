@@ -134,9 +134,3 @@ export async function uploadArtistAction(
   return { success: true, data }
 }
 
-// Placeholder album upload action to satisfy imports.
-export async function uploadAlbumAction(
-  _formData: FormData,
-): Promise<{ success: boolean; error?: string }> {
-  return { success: false, error: 'uploadAlbumAction not implemented' }
-}
