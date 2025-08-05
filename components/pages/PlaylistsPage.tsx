@@ -1,161 +1,248 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, Plus, Music, Clock, Users, MoreHorizontal, Heart, Play } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "../../utils/supabase/supabaseClient";
 import { Input } from "../ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { usePlaylists } from "../../utils/supabase/hooks";
-import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
+interface Playlist {
+  id: string;
+  title: string;
+  description: string;
+  cover_url: string | null;
+  created_at: string;
+  isFeatured: boolean;
+  sort_order: number;
+}
 
-const categories = ["All", "Featured", "Mood", "Activity", "Genre"];
-
-export function PlaylistsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const { data: playlists, loading } = usePlaylists();
-  const navigate = useNavigate();
-
-  const filteredPlaylists = (playlists || []).filter(playlist => {
-    const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         playlist.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || playlist.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+function SortableItem({ playlist }: { playlist: Playlist }) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: playlist.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   return (
-    <div className="glass-page fade-in space-y-8">
-      <button onClick={() => navigate(-1)} className="glass-back-button mb-4">
-        ← Back
-      </button>
-      {/* Header */}
-      <header className="glass-panel">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-dark-primary">Playlists</h1>
-            <p className="text-sm text-dark-secondary mt-1">Manage and curate music playlists</p>
-          </div>
-          <button className="dark-button-primary gap-2 flex items-center">
-            <Plus className="w-4 h-4" />
-            Create Playlist
-          </button>
-        </div>
-      </header>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="flex items-center justify-between p-2 border rounded bg-white mb-2"
+    >
+      <span>{playlist.title}</span>
+    </div>
+  );
+}
 
-      <main className="glass-panel">
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-secondary w-4 h-4" />
-            <Input
-              placeholder="Search playlists..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-dark-card border-dark-color text-dark-primary"
-            />
-          </div>
+export function PlaylistsPage() {
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-          {/* Category Filters */}
-          <div className="flex space-x-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  selectedCategory === category
-                    ? "bg-dark-cta text-white"
-                    : "bg-dark-tag text-dark-primary hover:bg-dark-hover"
-                }`}
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  const fetchPlaylists = async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error } = await supabase
+      .from("playlists")
+      .select(
+        "id, title, description, cover_url, created_at, featured_playlists(is_active, sort_order)"
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const mapped: Playlist[] = (data || []).map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      cover_url: p.cover_url,
+      created_at: p.created_at,
+      isFeatured: p.featured_playlists?.[0]?.is_active || false,
+      sort_order: p.featured_playlists?.[0]?.sort_order ?? 0,
+    }));
+
+    setPlaylists(mapped);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchPlaylists();
+  }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    setError(null);
+    const { data, error } = await supabase
+      .from("playlists")
+      .insert({ title, description })
+      .select()
+      .single();
+    if (error) {
+      setError(error.message);
+      setCreating(false);
+      return;
+    }
+    const playlistId = data.id;
+    if (coverFile) {
+      const ext = coverFile.name.split(".").pop();
+      const path = `images/covers/${playlistId}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("images")
+        .upload(path, coverFile);
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage
+          .from("images")
+          .getPublicUrl(path);
+        await supabase
+          .from("playlists")
+          .update({ cover_url: urlData.publicUrl })
+          .eq("id", playlistId);
+      } else {
+        setError(uploadError.message);
+      }
+    }
+    setTitle("");
+    setDescription("");
+    setCoverFile(null);
+    await fetchPlaylists();
+    setCreating(false);
+  };
+
+  const handleToggleFeatured = async (playlist: Playlist, value: boolean) => {
+    setError(null);
+    if (value) {
+      const maxOrder =
+        Math.max(0, ...playlists.filter((p) => p.isFeatured).map((p) => p.sort_order)) +
+        1;
+      await supabase
+        .from("featured_playlists")
+        .upsert({ playlist_id: playlist.id, is_active: true, sort_order: maxOrder });
+    } else {
+      await supabase
+        .from("featured_playlists")
+        .update({ is_active: false })
+        .eq("playlist_id", playlist.id);
+    }
+    await fetchPlaylists();
+  };
+
+  const featured = playlists
+    .filter((p) => p.isFeatured)
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = featured.findIndex((p) => p.id === active.id);
+    const newIndex = featured.findIndex((p) => p.id === over.id);
+    const newOrder = arrayMove(featured, oldIndex, newIndex);
+    await Promise.all(
+      newOrder.map((p, index) =>
+        supabase
+          .from("featured_playlists")
+          .update({ sort_order: index })
+          .eq("playlist_id", p.id)
+      )
+    );
+    await fetchPlaylists();
+  };
+
+  return (
+    <div className="p-6 space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold mb-4">Playlists</h1>
+        <form onSubmit={handleCreate} className="space-y-2 max-w-md">
+          <Input
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <Input
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Input
+            type="file"
+            onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+          />
+          <Button type="submit" disabled={creating}>
+            {creating ? "Creating..." : "Create Playlist"}
+          </Button>
+        </form>
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-2">Featured Playlists</h2>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={featured.map((p) => p.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {featured.map((p) => (
+              <SortableItem key={p.id} playlist={p} />
+            ))}
+          </SortableContext>
+        </DndContext>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-2">All Playlists</h2>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <div className="space-y-2">
+            {playlists.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between p-2 border rounded bg-white"
               >
-                {category}
-              </button>
+                <div>
+                  <p className="font-medium">{p.title}</p>
+                  <p className="text-sm text-gray-500">{p.description}</p>
+                </div>
+                <Switch
+                  checked={p.isFeatured}
+                  onCheckedChange={(val) => handleToggleFeatured(p, val)}
+                />
+              </div>
             ))}
           </div>
-        </div>
-
-        {/* Playlists Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading && (
-            [...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-64 rounded-xl" />
-            ))
-          )}
-          {!loading && filteredPlaylists.map((playlist) => (
-            <div key={playlist.id} className="dark-card hover:dark-shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-              <div className="relative mb-4">
-                <div className="w-full h-48 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl flex items-center justify-center relative overflow-hidden">
-                  <span className="text-6xl">{playlist.cover}</span>
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                    <button className="w-12 h-12 bg-dark-cta rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300">
-                      <Play className="w-5 h-5 text-white ml-0.5" />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="absolute top-3 right-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="w-8 h-8 bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full flex items-center justify-center transition-colors">
-                        <MoreHorizontal className="w-4 h-4 text-white" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-dark-card border-dark-color">
-                      <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
-                        Edit Playlist
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
-                        Share
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
-                        Analytics
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-400 hover:bg-dark-hover">
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <h3 className="font-bold text-dark-primary text-lg mb-1">{playlist.name}</h3>
-                  <p className="text-dark-secondary text-sm">{playlist.description}</p>
-                </div>
-
-                <div className="text-xs text-dark-secondary">
-                  <span>Curated by {playlist.curator}</span>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-dark-color">
-                  <div className="flex items-center space-x-4 text-xs text-dark-secondary">
-                    <div className="flex items-center space-x-1">
-                      <Music className="w-3 h-3" />
-                      <span>{playlist.tracks} tracks</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{playlist.duration}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-1 text-xs text-dark-secondary">
-                    <Heart className="w-3 h-3" />
-                    <span>{playlist.likes}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="dark-tag text-xs">
-                    {playlist.category}
-                  </div>
-                  <button className="dark-button-secondary text-xs py-1.5 px-3">
-                    Manage
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </main>
+        )}
+      </div>
     </div>
   );
 }
