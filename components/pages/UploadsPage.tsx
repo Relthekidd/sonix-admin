@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, Download, Music, Clock, CheckCircle, XCircle, AlertCircle, MoreHorizontal } from "lucide-react";
+import { Search, Filter, Download, ListMusic, Music, Clock, CheckCircle, XCircle, AlertCircle, MoreHorizontal } from "lucide-react";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -72,10 +72,19 @@ export function UploadsPage() {
             <h1 className="text-2xl font-semibold text-dark-primary">Uploads</h1>
             <p className="text-sm text-dark-secondary mt-1">Track and manage all uploaded content</p>
           </div>
-          <button className="dark-button-secondary gap-2 flex items-center">
-            <Download className="w-4 h-4" />
-            Export Report
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate("/playlists")}
+              className="dark-button-secondary gap-2 flex items-center"
+            >
+              <ListMusic className="w-4 h-4" />
+              Manage Playlists
+            </button>
+            <button className="dark-button-secondary gap-2 flex items-center">
+              <Download className="w-4 h-4" />
+              Export Report
+            </button>
+          </div>
         </div>
       </header>
 
