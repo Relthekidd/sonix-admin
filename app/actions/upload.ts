@@ -134,3 +134,87 @@ export async function uploadArtistAction(
   return { success: true, data }
 }
 
+
+export interface PlaylistTrackInput {
+  track_id: string;
+  position: number;
+}
+
+export interface UpsertPlaylistPayload {
+  id?: string;
+  name: string;
+  description?: string;
+  cover?: File | null;
+  genres?: string[];
+  moods?: string[];
+  isPublic?: boolean;
+  sortOrder?: number;
+  tracks: PlaylistTrackInput[];
+}
+
+export async function upsertPlaylistAction(
+  payload: UpsertPlaylistPayload
+): Promise<{ success: boolean; message?: string; id?: string }> {
+  const supabase = getSupabase();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError) {
+    console.error('Auth fetch error:', authError.message);
+    return { success: false, message: authError.message };
+  }
+  const userId = authData?.user?.id || null;
+
+  let coverUrl: string | null = null;
+  if (payload.cover) {
+    const ext = payload.cover.name.split('.').pop();
+    const path = `covers/${slugify(payload.name, { lower: true, strict: true })}-${Date.now()}.${ext}`;
+    const { data: coverData, error: coverError } = await supabase.storage
+      .from('images')
+      .upload(path, payload.cover);
+    if (coverError) {
+      console.error('Cover upload error:', coverError.message);
+      return { success: false, message: coverError.message };
+    }
+    coverUrl = coverData.path;
+  }
+
+  const { data: playlistData, error: playlistError } = await supabase
+    .from('playlists')
+    .upsert({
+      id: payload.id,
+      title: payload.name,
+      description: payload.description,
+      cover_url: coverUrl ?? undefined,
+      genres: payload.genres ?? null,
+      moods: payload.moods ?? null,
+      is_public: payload.isPublic ?? true,
+      sort_order: payload.sortOrder ?? null,
+      updated_by: userId,
+    })
+    .select()
+    .single();
+
+  if (playlistError) {
+    console.error('Playlist upsert error:', playlistError.message);
+    return { success: false, message: playlistError.message };
+  }
+
+  const playlistId = playlistData.id;
+
+  await supabase.from('playlist_tracks').delete().eq('playlist_id', playlistId);
+  const trackRows = payload.tracks.map((t) => ({
+    playlist_id: playlistId,
+    track_id: t.track_id,
+    position: t.position,
+  }));
+  if (trackRows.length) {
+    const { error: tracksError } = await supabase
+      .from('playlist_tracks')
+      .insert(trackRows);
+    if (tracksError) {
+      console.error('Playlist tracks insert error:', tracksError.message);
+      return { success: false, message: tracksError.message };
+    }
+  }
+
+  return { success: true, id: playlistId };
+}
