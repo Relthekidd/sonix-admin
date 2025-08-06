@@ -23,79 +23,94 @@ export async function uploadSingleAction(
     }
     const userId = authData?.user?.id || null
 
-  const title = formData.get('title') as string
-  const artistId = formData.get('artist') as string
-  const genre = formData.get('genre') as string
-  const mood = formData.get('mood') as string
-  const description = formData.get('description') as string
-  const lyrics = formData.get('lyrics') as string
-  const releaseDate = formData.get('releaseDate') as string
-  const featuredArtistsRaw = formData.get('featuredArtists') as string | null
-  const duration = formData.get('duration') as string
-  const is_published = formData.get('is_published') === 'on'
-  const audio = formData.get('audio') as File
-  const cover = (formData.get('cover') as File) || null
+    const title = formData.get('title') as string
+    const artistId = formData.get('artist') as string
+    const genre = formData.get('genre') as string
+    const mood = formData.get('mood') as string
+    const description = formData.get('description') as string
+    const lyrics = formData.get('lyrics') as string
+    const releaseDate = formData.get('releaseDate') as string
+    const featuredArtistsRaw = formData.get('featuredArtists') as string | null
+    const duration = formData.get('duration') as string
+    const is_published = formData.get('published') === 'on'
+    const audio = formData.get('audio') as File
+    const cover = (formData.get('cover') as File) || null
 
-  const slug = slugify(title, { lower: true, strict: true })
+    const slug = slugify(title, { lower: true, strict: true })
 
-  // Upload audio file
-    const { data: audioData, error: audioError } = await supabase.storage
+    // Prevent duplicate slugs
+    const { data: existing } = await supabase
+      .from('tracks')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle()
+    if (existing) {
+      return { success: false, message: 'Track already exists' }
+    }
+
+    let audioPath = ''
+    let coverPath: string | null = null
+
+    // Upload audio
+    const audioTs = Date.now()
+    audioPath = `tracks/${slug}-${audioTs}`
+    const { error: audioError } = await supabase.storage
       .from('audio-files')
-      .upload(`audio/${slug}-${Date.now()}`, audio)
-    if (audioError || !audioData) {
+      .upload(audioPath, audio, { upsert: false })
+    if (audioError) {
       logError('Audio upload error', audioError)
-      return { success: false, message: audioError?.message }
+      return { success: false, message: audioError.message }
     }
-    const audioUrl = audioData.path
 
-  // Upload cover image if provided
-  let coverPath: string | null = null
-  if (cover) {
-      const { data: coverData, error: coverError } = await supabase.storage
+    // Upload cover
+    if (cover) {
+      const coverTs = Date.now()
+      coverPath = `covers/${slug}-${coverTs}`
+      const { error: coverError } = await supabase.storage
         .from('images')
-        .upload(`covers/${slug}-${Date.now()}`, cover)
-      if (coverError || !coverData) {
+        .upload(coverPath, cover, { upsert: false })
+      if (coverError) {
+        // rollback audio
+        await supabase.storage.from('audio-files').remove([audioPath])
         logError('Cover upload error', coverError)
-        return { success: false, message: coverError?.message }
+        return { success: false, message: coverError.message }
       }
-      coverPath = coverData.path
-  }
-
-  // Parse featured artist IDs
-  const featuredArtistIds = featuredArtistsRaw
-    ? (JSON.parse(featuredArtistsRaw) as string[])
-    : []
-
-  // Parse duration to seconds
-  const durationSeconds = (() => {
-    if (!duration) return null
-    if (duration.includes(':')) {
-      const [m, s] = duration.split(':').map(Number)
-      return m * 60 + (s || 0)
     }
-    return Number(duration)
-  })()
 
-  // Combine genres
-  const genres = [genre, mood].filter(Boolean)
+    const featuredArtistIds = featuredArtistsRaw
+      ? (JSON.parse(featuredArtistsRaw) as string[])
+      : []
 
-  // Insert track record
+    const durationSeconds = (() => {
+      if (!duration) return null
+      if (duration.includes(':')) {
+        const [m, s] = duration.split(':').map(Number)
+        return m * 60 + (s || 0)
+      }
+      return Number(duration)
+    })()
+
+    const genres = [genre, mood].filter(Boolean)
+
     const { error } = await supabase.from('tracks').insert({
-    title,
-    artist_id: artistId,
-    audio_url: audioUrl,
-    cover_url: coverPath,
-    description,
-    lyrics,
-    featured_artist_ids: featuredArtistIds.length ? featuredArtistIds : null,
-    release_date: releaseDate || null,
-    duration: durationSeconds,
-    genres,
-    is_published,
-    slug,
-    created_by: userId,
-  })
+      title,
+      artist_id: artistId,
+      audio_url: audioPath,
+      cover_url: coverPath,
+      description,
+      lyrics,
+      featured_artist_ids: featuredArtistIds.length ? featuredArtistIds : null,
+      release_date: releaseDate || null,
+      duration: durationSeconds,
+      genres,
+      is_published,
+      slug,
+      created_by: userId,
+    })
+
     if (error) {
+      await supabase.storage.from('audio-files').remove([audioPath])
+      if (coverPath) await supabase.storage.from('images').remove([coverPath])
       logError('Track insert error', error)
       return { success: false, message: error.message }
     }

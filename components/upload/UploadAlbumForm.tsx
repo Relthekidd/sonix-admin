@@ -28,6 +28,10 @@ export default function UploadAlbumForm() {
     { title: '', file: null, lyrics: '', featuredArtistIds: [] },
   ])
   const { uploadAlbum, pending } = useAlbumUpload()
+  const formValid =
+    title &&
+    mainArtistId &&
+    tracks.every(t => t.title && t.file)
 
   useEffect(() => {
     supabaseBrowser().from('artists').select('id,name').then(({ data }) => setArtists(data || []))
@@ -126,35 +130,35 @@ export default function UploadAlbumForm() {
         reset()
       } else {
         logError('Album upload failed', res.message)
-        toast(res.message || 'Upload failed')
+        toast(`${res.message || 'Upload failed'} at ${new Date().toLocaleTimeString()}`)
       }
     } catch (err: any) {
       logError('Album upload error', err)
-      toast(err.message || 'Upload failed')
+      toast(`${err.message || 'Upload failed'} at ${new Date().toLocaleTimeString()}`)
     }
   }
 
   return (
-    <GlassCard className="p-8">
-      <form onSubmit={onSubmit} className="space-y-6 text-lg">
-        <div className="space-y-3">
+    <GlassCard className="p-8 h-auto min-h-[350px]">
+      <form onSubmit={onSubmit} className="space-y-8 text-lg">
+        <div className="space-y-4">
           <label htmlFor="albumTitle" className="text-lg font-medium">Album Title</label>
           <Input
             id="albumTitle"
             value={title}
             onChange={e => setTitle(e.target.value)}
             required
-            className="h-12 px-4 text-lg"
+            className="h-14 px-6 text-lg"
           />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label htmlFor="albumArtist" className="text-lg font-medium">Main Artist</label>
           <input
             id="albumArtist"
             list="album-artists"
             value={mainArtistId}
             onChange={e => setMainArtistId(e.target.value)}
-            className="w-full rounded-md border border-white/20 bg-white/10 px-4 py-3 text-lg text-white"
+            className="w-full rounded-md border border-white/20 bg-white/10 px-6 py-4 text-lg text-white"
           />
           <datalist id="album-artists">
             {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -163,28 +167,28 @@ export default function UploadAlbumForm() {
             <p className="text-sm text-slate-400">Selected: {mainArtistName}</p>
           )}
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label htmlFor="cover" className="text-lg font-medium">Cover</label>
           <input
             id="cover"
             type="file"
             accept="image/*"
             onChange={e => setCover(e.target.files?.[0] || null)}
-            className="w-full rounded-md border border-white/20 bg-white/10 px-4 py-3 text-lg text-white"
+            className="w-full rounded-md border border-white/20 bg-white/10 px-6 py-4 text-lg text-white"
           />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label htmlFor="releaseDate" className="text-lg font-medium">Release Date</label>
           <Input
             id="releaseDate"
             type="date"
             value={releaseDate}
             onChange={e => setReleaseDate(e.target.value)}
-            className="h-12 px-4 text-lg"
+            className="h-14 px-6 text-lg"
           />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label className="text-lg font-medium">Featured Artists</label>
           <ArtistMultiSelect
             artists={artists}
@@ -194,20 +198,20 @@ export default function UploadAlbumForm() {
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {tracks.map((t, idx) => (
             <div key={idx} className="space-y-6 rounded-lg border border-white/20 p-6">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <label htmlFor={`track-title-${idx}`} className="text-lg font-medium">Track Title</label>
                 <Input
                   id={`track-title-${idx}`}
                   value={t.title}
                   onChange={e => updateTrack(idx, 'title', e.target.value)}
                   required
-                  className="h-12 px-4 text-lg"
+                  className="h-14 px-6 text-lg"
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <label htmlFor={`track-audio-${idx}`} className="text-lg font-medium">Audio</label>
                 <input
                   id={`track-audio-${idx}`}
@@ -215,19 +219,19 @@ export default function UploadAlbumForm() {
                   accept="audio/*"
                   onChange={e => e.target.files && handleTrackFile(idx, e.target.files[0])}
                   required
-                  className="w-full rounded-md border border-white/20 bg-white/10 px-4 py-3 text-lg text-white"
+                  className="w-full rounded-md border border-white/20 bg-white/10 px-6 py-4 text-lg text-white"
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <label htmlFor={`track-lyrics-${idx}`} className="text-lg font-medium">Lyrics</label>
                 <Textarea
                   id={`track-lyrics-${idx}`}
                   value={t.lyrics}
                   onChange={e => updateTrack(idx, 'lyrics', e.target.value)}
-                  className="min-h-32 px-4 py-3 text-lg"
+                  className="min-h-40 px-6 py-4 text-lg"
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <label className="text-lg font-medium">Featured Artists</label>
                 <ArtistMultiSelect
                   artists={artists}
@@ -249,8 +253,8 @@ export default function UploadAlbumForm() {
         </div>
         <Button
           type="submit"
-          disabled={pending}
-          className="flex items-center gap-3 rounded-lg bg-white/10 px-6 py-3 text-lg text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50"
+          disabled={pending || !formValid}
+          className="flex items-center gap-3 rounded-lg bg-white/10 px-8 py-4 text-lg text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50"
         >
           {pending && <span className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />}
           Upload Album
