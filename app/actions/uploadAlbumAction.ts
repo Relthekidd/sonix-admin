@@ -2,6 +2,7 @@
 
 import { supabaseAdmin } from '../../utils/supabase/serverClient'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
+import { logError } from '../../utils/logger'
 
 const getSupabase = () =>
   typeof window === 'undefined' ? supabaseAdmin() : supabaseBrowser()
@@ -10,30 +11,32 @@ type Result = { success: true } | { success: false; message: string }
 
 export async function uploadAlbumAction(formData: FormData): Promise<Result> {
   const supabase = getSupabase()
-
-  // 1. Get the current user
-  const { data: authData, error: authError } = await supabase.auth.getUser()
-  if (authError) return { success: false, message: authError.message }
-  const userId = authData.user!.id
-
-  // 2. Extract album fields
-  const title = formData.get('title') as string
-  const mainArtistId = formData.get('mainArtistId') as string
-  const releaseDate = (formData.get('releaseDate') as string) || undefined
-  const coverFile = formData.get('cover') as File | null
-  const featuredArtistsRaw = formData.get('featuredArtists') as string | null
-  const albumFeaturedArtistIds = featuredArtistsRaw
-    ? (JSON.parse(featuredArtistsRaw) as string[])
-    : []
-
-  // Track metadata is expected as a JSON string under 'tracks'
-  const tracksMeta = JSON.parse(formData.get('tracks') as string) as Array<{
-    title: string
-    lyrics?: string
-    featuredArtistIds: string[]
-  }>
-
   try {
+    // 1. Get the current user
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+    if (authError) {
+      logError('Album auth fetch error', authError)
+      return { success: false, message: authError.message }
+    }
+    const userId = authData.user!.id
+
+    // 2. Extract album fields
+    const title = formData.get('title') as string
+    const mainArtistId = formData.get('mainArtistId') as string
+    const releaseDate = (formData.get('releaseDate') as string) || undefined
+    const coverFile = formData.get('cover') as File | null
+    const featuredArtistsRaw = formData.get('featuredArtists') as string | null
+    const albumFeaturedArtistIds = featuredArtistsRaw
+      ? (JSON.parse(featuredArtistsRaw) as string[])
+      : []
+
+    // Track metadata is expected as a JSON string under 'tracks'
+    const tracksMeta = JSON.parse(formData.get('tracks') as string) as Array<{
+      title: string
+      lyrics?: string
+      featuredArtistIds: string[]
+    }>
+
     // 3. Insert the album record
     const { data: albumData, error: albumError } = await supabase
       .from('albums')
@@ -46,7 +49,13 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       })
       .select('id')
       .single()
-    if (albumError || !albumData) throw new Error(albumError?.message ?? 'Failed to create album')
+    if (albumError || !albumData) {
+      logError('Album insert error', albumError)
+      return {
+        success: false,
+        message: albumError?.message ?? 'Failed to create album',
+      }
+    }
     const albumId = albumData.id
 
     // 4. Upload & set the album cover (if provided)
@@ -58,12 +67,20 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       const { data: coverData, error: coverError } = await supabase.storage
         .from('images')
         .upload(coverPath, coverFile)
-      if (coverError) throw new Error(coverError.message)
+      if (coverError || !coverData) {
+        logError('Album cover upload error', coverError)
+        return { success: false, message: coverError?.message }
+      }
 
-      await supabase
+      const { error: coverUpdateError } = await supabase
         .from('albums')
         .update({ cover_url: coverData.path })
         .eq('id', albumId)
+      if (coverUpdateError) {
+        logError('Album cover update error', coverUpdateError)
+        return { success: false, message: coverUpdateError.message }
+      }
+      coverPath = coverData.path
     }
 
     // 5. For each track: upload audio first, then insert the track row
@@ -79,7 +96,10 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
         const { error: audioError } = await supabase.storage
           .from('audio-files')
           .upload(audioPath, file)
-        if (audioError) throw new Error(audioError.message)
+        if (audioError) {
+          logError(`Track ${i} audio upload error`, audioError)
+          return { success: false, message: audioError.message }
+        }
       }
 
       // 5b. Parse featured artists array
@@ -98,12 +118,15 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
           audio_url: audioPath,
           created_by: userId,
         })
-      if (trackError) throw new Error(trackError.message)
+      if (trackError) {
+        logError(`Track ${i} insert error`, trackError)
+        return { success: false, message: trackError.message }
+      }
     }
 
     return { success: true }
   } catch (err: any) {
-    console.error('Upload album error:', err.message)
+    logError('Upload album unexpected error', err)
     return { success: false, message: err.message }
   }
 }

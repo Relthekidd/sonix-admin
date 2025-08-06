@@ -1,6 +1,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { uploadSingleAction } from '../../app/actions/upload'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
+import { logError } from '../../utils/logger'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { GlassCard } from '../common/GlassCard'
@@ -73,9 +74,11 @@ export default function UploadSingleForm() {
           toast('Uploaded successfully')
           reset()
         } else {
+          logError('Single track upload failed', res.message)
           toast(res.message || 'Upload failed')
         }
       } catch (err: any) {
+        logError('Single track upload error', err)
         toast(err.message || 'Upload failed')
       }
     })

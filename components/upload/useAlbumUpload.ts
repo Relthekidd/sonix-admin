@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { uploadAlbumAction } from '../../app/actions/uploadAlbumAction'
+import { logError } from '../../utils/logger'
 
 export function useAlbumUpload() {
   const [pending, setPending] = useState(false)
@@ -13,12 +14,14 @@ export function useAlbumUpload() {
     try {
       const res = await uploadAlbumAction(formData)
       if (!res.success) {
+        logError('Album upload action failed', res.message)
         setError(res.message || 'Upload failed')
       } else {
         setSuccess(true)
       }
       return res
     } catch (err: any) {
+      logError('Album upload hook error', err)
       setError(err.message || 'Upload failed')
       return { success: false, message: err.message }
     } finally {
