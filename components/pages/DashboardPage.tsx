@@ -42,7 +42,7 @@ const quickAccessCards = [
     glowColor: "shadow-purple-500/25"
   },
   {
-    title: "Manage Artists", 
+    title: "Manage Artists",
     description: "Browse and edit artist profiles",
     icon: Mic,
     iconColor: "text-emerald-400",
@@ -50,6 +50,16 @@ const quickAccessCards = [
     borderColor: "border-emerald-500/30",
     page: "Artists",
     glowColor: "shadow-emerald-500/25"
+  },
+  {
+    title: "Playlist Creator",
+    description: "Build and organize playlists",
+    icon: Music,
+    iconColor: "text-violet-400",
+    bgGradient: "from-violet-600/20 to-indigo-600/20",
+    borderColor: "border-violet-500/30",
+    page: "Playlists",
+    glowColor: "shadow-violet-500/25"
   },
   {
     title: "Platform Users",
