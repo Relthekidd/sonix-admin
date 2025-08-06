@@ -32,7 +32,7 @@ export async function uploadSingleAction(
   const releaseDate = formData.get('releaseDate') as string
   const featuredArtistsRaw = formData.get('featuredArtists') as string | null
   const duration = formData.get('duration') as string
-  const published = formData.get('published') === 'on'
+  const is_published = formData.get('is_published') === 'on'
   const audio = formData.get('audio') as File
   const cover = (formData.get('cover') as File) || null
 
@@ -91,7 +91,7 @@ export async function uploadSingleAction(
     release_date: releaseDate || null,
     duration: durationSeconds,
     genres,
-    published,
+    is_published,
     slug,
     created_by: userId,
   })
