@@ -23,6 +23,7 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
     // 2. Extract album fields
     const title = formData.get('title') as string
     const mainArtistId = formData.get('mainArtistId') as string
+    const description = (formData.get('description') as string) || undefined
     const releaseDate = (formData.get('releaseDate') as string) || undefined
     const coverFile = formData.get('cover') as File | null
     const featuredArtistsRaw = formData.get('featuredArtists') as string | null
@@ -35,6 +36,8 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       title: string
       lyrics?: string
       featuredArtistIds: string[]
+      trackNumber?: number
+      duration?: number
     }>
 
     // 3. Insert the album record
@@ -42,7 +45,8 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       .from('albums')
       .insert({
         title,
-        main_artist_id: mainArtistId,
+        artist_id: mainArtistId,
+        description,
         featured_artist_ids: albumFeaturedArtistIds,
         release_date: releaseDate,
         created_by: userId,
@@ -89,10 +93,11 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       const file = formData.get(`trackFile${i}`) as File | null
 
       // 5a. Upload audio file
-      let audioPath = ''
+      let trackFileName = ''
       if (file) {
         const ext = file.name.split('.').pop() ?? 'mp3'
-        audioPath = `audio/${albumId}/${Date.now()}_${i}.${ext}`
+        trackFileName = `${Date.now()}_${i}.${ext}`
+        const audioPath = `albums/${albumId}/${trackFileName}`
         const { error: audioError } = await supabase.storage
           .from('audio-files')
           .upload(audioPath, file)
@@ -113,9 +118,13 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
           lyrics: meta.lyrics ?? null,
           featured_artist_ids: featuredArtistIds,
           album_id: albumId,
-          track_number: i + 1,
+          artist_id: mainArtistId,
+          track_number: meta.trackNumber ?? i + 1,
+          duration: meta.duration ?? null,
           cover_url: coverPath,
-          audio_url: audioPath,
+          audio_url: trackFileName,
+          play_count: 0,
+          like_count: 0,
           created_by: userId,
         })
       if (trackError) {
