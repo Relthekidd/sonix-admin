@@ -14,6 +14,8 @@ interface Track {
   file: File | null
   lyrics: string
   featuredArtistIds: string[]
+  trackNumber: number
+  duration: number
 }
 
 export default function UploadAlbumForm() {
@@ -21,10 +23,11 @@ export default function UploadAlbumForm() {
   const [mainArtistId, setMainArtistId] = useState('')
   const [artists, setArtists] = useState<Array<{ id: string; name: string }>>([])
   const [cover, setCover] = useState<File | null>(null)
+  const [description, setDescription] = useState('')
   const [releaseDate, setReleaseDate] = useState('')
   const [featuredArtistIds, setFeaturedArtistIds] = useState<string[]>([])
   const [tracks, setTracks] = useState<Track[]>([
-    { title: '', file: null, lyrics: '', featuredArtistIds: [] },
+    { title: '', file: null, lyrics: '', featuredArtistIds: [], trackNumber: 1, duration: 0 },
   ])
   const { uploadAlbum, pending } = useAlbumUpload()
 
@@ -33,7 +36,12 @@ export default function UploadAlbumForm() {
   }, [])
 
   const handleTrackFile = (idx: number, file: File) => {
-    setTracks(tracks => tracks.map((t, i) => i === idx ? { ...t, file } : t))
+    const audioEl = document.createElement('audio')
+    audioEl.onloadedmetadata = () => {
+      const duration = Math.round(audioEl.duration)
+      setTracks(tracks => tracks.map((t, i) => i === idx ? { ...t, file, duration } : t))
+    }
+    audioEl.src = URL.createObjectURL(file)
   }
 
   const updateTrack = (idx: number, field: keyof Track, value: any) => {
@@ -43,7 +51,14 @@ export default function UploadAlbumForm() {
   const addTrack = () =>
     setTracks([
       ...tracks,
-      { title: '', file: null, lyrics: '', featuredArtistIds: [] },
+      {
+        title: '',
+        file: null,
+        lyrics: '',
+        featuredArtistIds: [],
+        trackNumber: tracks.length + 1,
+        duration: 0,
+      },
     ])
   const removeTrack = (idx: number) => setTracks(tracks.filter((_, i) => i !== idx))
 
@@ -51,16 +66,18 @@ export default function UploadAlbumForm() {
     setTitle('')
     setMainArtistId('')
     setCover(null)
+    setDescription('')
     setReleaseDate('')
     setFeaturedArtistIds([])
-    setTracks([{ title: '', file: null, lyrics: '', featuredArtistIds: [] }])
+    setTracks([{ title: '', file: null, lyrics: '', featuredArtistIds: [], trackNumber: 1, duration: 0 }])
   }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const fd = new FormData()
     fd.append('title', title)
-    fd.append('main_artist_id', mainArtistId)
+    fd.append('mainArtistId', mainArtistId)
+    fd.append('description', description)
     if (cover) fd.append('cover', cover)
     fd.append('releaseDate', releaseDate)
     fd.append('featuredArtists', JSON.stringify(featuredArtistIds))
@@ -71,6 +88,8 @@ export default function UploadAlbumForm() {
           title: t.title,
           lyrics: t.lyrics,
           featuredArtistIds: t.featuredArtistIds,
+          trackNumber: t.trackNumber,
+          duration: t.duration,
         }))
       )
     )
@@ -141,6 +160,16 @@ export default function UploadAlbumForm() {
         </div>
 
         <div className="space-y-3">
+          <label htmlFor="albumDescription" className="text-lg font-medium">Description</label>
+          <Textarea
+            id="albumDescription"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            className="min-h-32 px-4 py-3 text-lg"
+          />
+        </div>
+
+        <div className="space-y-3">
           <label className="text-lg font-medium">Featured Artists</label>
           <ArtistMultiSelect
             artists={artists}
@@ -164,6 +193,17 @@ export default function UploadAlbumForm() {
                 />
               </div>
               <div className="space-y-3">
+                <label htmlFor={`track-number-${idx}`} className="text-lg font-medium">Track Number</label>
+                <Input
+                  id={`track-number-${idx}`}
+                  type="number"
+                  min={1}
+                  value={t.trackNumber}
+                  onChange={e => updateTrack(idx, 'trackNumber', Number(e.target.value))}
+                  className="h-12 px-4 text-lg"
+                />
+              </div>
+              <div className="space-y-3">
                 <label htmlFor={`track-audio-${idx}`} className="text-lg font-medium">Audio</label>
                 <input
                   id={`track-audio-${idx}`}
@@ -173,6 +213,9 @@ export default function UploadAlbumForm() {
                   required
                   className="w-full rounded-md border border-white/20 bg-white/10 px-4 py-3 text-lg text-white"
                 />
+                {t.duration > 0 && (
+                  <p className="text-sm opacity-80">Duration: {Math.floor(t.duration / 60)}:{String(Math.floor(t.duration % 60)).padStart(2, '0')}</p>
+                )}
               </div>
               <div className="space-y-3">
                 <label htmlFor={`track-lyrics-${idx}`} className="text-lg font-medium">Lyrics</label>
