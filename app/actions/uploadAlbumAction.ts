@@ -1,5 +1,6 @@
 // ── app/actions/uploadAlbumAction.ts ──
 
+import slugify from 'slugify'
 import { supabaseAdmin } from '../../utils/supabase/serverClient'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { logError } from '../../utils/logger'
@@ -11,8 +12,10 @@ type Result = { success: true } | { success: false; message: string }
 
 export async function uploadAlbumAction(formData: FormData): Promise<Result> {
   const supabase = getSupabase()
+  let albumId: string | null = null
+  const uploadedFiles: Array<{ bucket: string; path: string }> = []
   try {
-    // 1. Get the current user
+    // Authenticate user
     const { data: authData, error: authError } = await supabase.auth.getUser()
     if (authError) {
       logError('Album auth fetch error', authError)
@@ -20,7 +23,7 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
     }
     const userId = authData.user!.id
 
-    // 2. Extract album fields
+    // Album fields
     const title = formData.get('title') as string
     const mainArtistId = formData.get('mainArtistId') as string
     const releaseDate = (formData.get('releaseDate') as string) || undefined
@@ -30,14 +33,27 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
       ? (JSON.parse(featuredArtistsRaw) as string[])
       : []
 
-    // Track metadata is expected as a JSON string under 'tracks'
-    const tracksMeta = JSON.parse(formData.get('tracks') as string) as Array<{
+    // Duplicate album check
+    const { data: existingAlbum } = await supabase
+      .from('albums')
+      .select('id')
+      .eq('title', title)
+      .eq('main_artist_id', mainArtistId)
+      .maybeSingle()
+    if (existingAlbum) {
+      return { success: false, message: 'Album already exists' }
+    }
+
+    // Track metadata
+    const tracksMeta = JSON.parse(
+      formData.get('tracks') as string
+    ) as Array<{
       title: string
       lyrics?: string
       featuredArtistIds: string[]
     }>
 
-    // 3. Insert the album record
+    // Insert album
     const { data: albumData, error: albumError } = await supabase
       .from('albums')
       .insert({
@@ -56,56 +72,60 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
         message: albumError?.message ?? 'Failed to create album',
       }
     }
-    const albumId = albumData.id
+    albumId = albumData.id
 
-    // 4. Upload & set the album cover (if provided)
+    // Upload cover
     let coverPath: string | null = null
     if (coverFile) {
-      const ext = coverFile.name.split('.').pop() ?? 'jpg'
-      coverPath = `album_covers/${albumId}/${Date.now()}.${ext}`
-
-      const { data: coverData, error: coverError } = await supabase.storage
+      const coverSlug = slugify(title, { lower: true, strict: true })
+      const coverTs = Date.now()
+      coverPath = `album_covers/${albumId}/${coverSlug}-${coverTs}`
+      const { error: coverError } = await supabase.storage
         .from('images')
-        .upload(coverPath, coverFile)
-      if (coverError || !coverData) {
+        .upload(coverPath, coverFile, { upsert: false })
+      if (coverError) {
         logError('Album cover upload error', coverError)
-        return { success: false, message: coverError?.message }
+        await supabase.from('albums').delete().eq('id', albumId)
+        return { success: false, message: coverError.message }
       }
-
+      uploadedFiles.push({ bucket: 'images', path: coverPath })
       const { error: coverUpdateError } = await supabase
         .from('albums')
-        .update({ cover_url: coverData.path })
+        .update({ cover_url: coverPath })
         .eq('id', albumId)
       if (coverUpdateError) {
         logError('Album cover update error', coverUpdateError)
+        await supabase.storage.from('images').remove([coverPath])
+        await supabase.from('albums').delete().eq('id', albumId)
         return { success: false, message: coverUpdateError.message }
       }
-      coverPath = coverData.path
     }
 
-    // 5. For each track: upload audio first, then insert the track row
+    // Upload tracks
     for (let i = 0; i < tracksMeta.length; i++) {
       const meta = tracksMeta[i]
       const file = formData.get(`trackFile${i}`) as File | null
-
-      // 5a. Upload audio file
       let audioPath = ''
       if (file) {
-        const ext = file.name.split('.').pop() ?? 'mp3'
-        audioPath = `audio/${albumId}/${Date.now()}_${i}.${ext}`
+        const trackSlug = slugify(meta.title, { lower: true, strict: true })
+        const audioTs = Date.now()
+        audioPath = `audio/${albumId}/${trackSlug}-${audioTs}`
         const { error: audioError } = await supabase.storage
           .from('audio-files')
-          .upload(audioPath, file)
+          .upload(audioPath, file, { upsert: false })
         if (audioError) {
           logError(`Track ${i} audio upload error`, audioError)
+          uploadedFiles.forEach(f =>
+            supabase.storage.from(f.bucket).remove([f.path])
+          )
+          await supabase.from('tracks').delete().eq('album_id', albumId)
+          await supabase.from('albums').delete().eq('id', albumId)
           return { success: false, message: audioError.message }
         }
+        uploadedFiles.push({ bucket: 'audio-files', path: audioPath })
       }
 
-      // 5b. Parse featured artists array
       const featuredArtistIds = meta.featuredArtistIds || []
-
-      // 5c. Insert the track row (with its audio_url)
       const { error: trackError } = await supabase
         .from('tracks')
         .insert({
@@ -121,6 +141,11 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
         })
       if (trackError) {
         logError(`Track ${i} insert error`, trackError)
+        uploadedFiles.forEach(f =>
+          supabase.storage.from(f.bucket).remove([f.path])
+        )
+        await supabase.from('tracks').delete().eq('album_id', albumId)
+        await supabase.from('albums').delete().eq('id', albumId)
         return { success: false, message: trackError.message }
       }
     }
@@ -128,8 +153,16 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
     return { success: true }
   } catch (err: any) {
     logError('Upload album unexpected error', err)
+    if (albumId) {
+      uploadedFiles.forEach(f =>
+        supabase.storage.from(f.bucket).remove([f.path])
+      )
+      await supabase.from('tracks').delete().eq('album_id', albumId)
+      await supabase.from('albums').delete().eq('id', albumId)
+    }
     return { success: false, message: err.message }
   }
 }
 
 export default uploadAlbumAction
+
