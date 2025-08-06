@@ -18,6 +18,8 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { TrackSearchDialog } from "../common/TrackSearchDialog";
+import { upsertPlaylistAction } from "../../app/actions/upload";
 
 interface Playlist {
   id: string;
@@ -29,7 +31,13 @@ interface Playlist {
   sort_order: number;
 }
 
-function SortableItem({ playlist }: { playlist: Playlist }) {
+interface TrackItem {
+  id: string;
+  title: string;
+  artist?: { id: string; name: string } | null;
+}
+
+function SortablePlaylistItem({ playlist }: { playlist: Playlist }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: playlist.id });
   const style = {
@@ -50,15 +58,58 @@ function SortableItem({ playlist }: { playlist: Playlist }) {
   );
 }
 
+function SortableTrackItem({
+  track,
+  onRemove,
+}: {
+  track: TrackItem;
+  onRemove: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: track.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="flex items-center justify-between p-2 border rounded bg-white mb-2"
+    >
+      <div>
+        <p className="font-medium">{track.title}</p>
+        <p className="text-sm text-gray-500">{track.artist?.name}</p>
+      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemove(track.id)}
+      >
+        Remove
+      </Button>
+    </div>
+  );
+}
+
 export function PlaylistsPage() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [title, setTitle] = useState("");
+  // form state
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [genres, setGenres] = useState("");
+  const [moods, setMoods] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [sortOrder, setSortOrder] = useState<number>(0);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [creating, setCreating] = useState(false);
+  const [trackDialogOpen, setTrackDialogOpen] = useState(false);
+  const [selectedTracks, setSelectedTracks] = useState<TrackItem[]>([]);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -96,43 +147,61 @@ export function PlaylistsPage() {
     fetchPlaylists();
   }, []);
 
+  const handleAddTrack = (track: TrackItem) => {
+    if (!selectedTracks.find((t) => t.id === track.id)) {
+      setSelectedTracks([...selectedTracks, track]);
+    }
+    setTrackDialogOpen(false);
+  };
+  const handleTrackDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = selectedTracks.findIndex((t) => t.id === active.id);
+    const newIndex = selectedTracks.findIndex((t) => t.id === over.id);
+    setSelectedTracks(arrayMove(selectedTracks, oldIndex, newIndex));
+  };
+
+  const handleRemoveTrack = (id: string) => {
+    setSelectedTracks(selectedTracks.filter((t) => t.id !== id));
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
     setError(null);
-    const { data, error } = await supabase
-      .from("playlists")
-      .insert({ title, description })
-      .select()
-      .single();
-    if (error) {
-      setError(error.message);
-      setCreating(false);
-      return;
+    const payload = {
+      name,
+      description,
+      cover: coverFile,
+      genres: genres
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean),
+      moods: moods
+        .split(",")
+        .map((m) => m.trim())
+        .filter(Boolean),
+      isPublic,
+      sortOrder,
+      tracks: selectedTracks.map((t, idx) => ({
+        track_id: t.id,
+        position: idx,
+      })),
+    };
+    const { success, message } = await upsertPlaylistAction(payload);
+    if (!success) {
+      setError(message || "Failed to save playlist");
+    } else {
+      setName("");
+      setDescription("");
+      setGenres("");
+      setMoods("");
+      setIsPublic(true);
+      setSortOrder(0);
+      setCoverFile(null);
+      setSelectedTracks([]);
+      await fetchPlaylists();
     }
-    const playlistId = data.id;
-    if (coverFile) {
-      const ext = coverFile.name.split(".").pop();
-      const path = `images/covers/${playlistId}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(path, coverFile);
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from("images")
-          .getPublicUrl(path);
-        await supabase
-          .from("playlists")
-          .update({ cover_url: urlData.publicUrl })
-          .eq("id", playlistId);
-      } else {
-        setError(uploadError.message);
-      }
-    }
-    setTitle("");
-    setDescription("");
-    setCoverFile(null);
-    await fetchPlaylists();
     setCreating(false);
   };
 
@@ -179,11 +248,11 @@ export function PlaylistsPage() {
     <div className="p-6 space-y-8">
       <div>
         <h1 className="text-2xl font-semibold mb-4">Playlists</h1>
-        <form onSubmit={handleCreate} className="space-y-2 max-w-md">
+        <form onSubmit={handleCreate} className="space-y-4 max-w-md">
           <Input
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
           <Input
             placeholder="Description"
@@ -191,11 +260,56 @@ export function PlaylistsPage() {
             onChange={(e) => setDescription(e.target.value)}
           />
           <Input
+            placeholder="Genres (comma separated)"
+            value={genres}
+            onChange={(e) => setGenres(e.target.value)}
+          />
+          <Input
+            placeholder="Moods (comma separated)"
+            value={moods}
+            onChange={(e) => setMoods(e.target.value)}
+          />
+          <div className="flex items-center space-x-2">
+            <Switch checked={isPublic} onCheckedChange={setIsPublic} />
+            <span className="text-sm">Is Public</span>
+          </div>
+          <Input
+            type="number"
+            placeholder="Sort Order"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(Number(e.target.value))}
+          />
+          <Input
             type="file"
             onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
           />
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setTrackDialogOpen(true)}
+          >
+            Add Tracks
+          </Button>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleTrackDragEnd}
+          >
+            <SortableContext
+              items={selectedTracks.map((t) => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {selectedTracks.map((t) => (
+                <SortableTrackItem
+                  key={t.id}
+                  track={t}
+                  onRemove={handleRemoveTrack}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
           <Button type="submit" disabled={creating}>
-            {creating ? "Creating..." : "Create Playlist"}
+            {creating ? "Saving..." : "Save Playlist"}
           </Button>
         </form>
         {error && <p className="text-red-500 mt-2">{error}</p>}
@@ -213,7 +327,7 @@ export function PlaylistsPage() {
             strategy={verticalListSortingStrategy}
           >
             {featured.map((p) => (
-              <SortableItem key={p.id} playlist={p} />
+              <SortablePlaylistItem key={p.id} playlist={p} />
             ))}
           </SortableContext>
         </DndContext>
@@ -243,6 +357,12 @@ export function PlaylistsPage() {
           </div>
         )}
       </div>
+
+      <TrackSearchDialog
+        open={trackDialogOpen}
+        onOpenChange={setTrackDialogOpen}
+        onSelect={handleAddTrack}
+      />
     </div>
   );
 }
