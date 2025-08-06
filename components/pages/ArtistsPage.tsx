@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,11 +28,16 @@ import {
 import { useArtists } from "../../utils/supabase/hooks";
 import { Skeleton } from "../ui/skeleton";
 import { AddArtistForm } from "../artists/AddArtistForm";
+import { supabaseBrowser } from "../../utils/supabase/supabaseClient";
+import { toast } from "sonner";
 
 
 export function ArtistsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
+  const [followersOpen, setFollowersOpen] = useState(false);
+  const [selectedArtist, setSelectedArtist] = useState<any | null>(null);
+  const [simFollowers, setSimFollowers] = useState(0);
   const { data: artists, loading, refetch } = useArtists();
   const navigate = useNavigate();
 
@@ -95,6 +101,48 @@ export function ArtistsPage() {
           </Dialog>
         </div>
       </header>
+
+      <Dialog open={followersOpen} onOpenChange={setFollowersOpen}>
+        <DialogContent className="bg-dark-card border-dark-color">
+          <DialogHeader>
+            <DialogTitle className="text-dark-primary">
+              Simulate Followers
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              type="number"
+              min="0"
+              value={simFollowers}
+              onChange={(e) => setSimFollowers(Number(e.target.value))}
+              className="bg-dark-card border-dark-color text-dark-primary"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setFollowersOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!selectedArtist) return;
+                  const { error } = await supabaseBrowser()
+                    .from('artists')
+                    .update({ followers_count: simFollowers })
+                    .eq('id', selectedArtist.id);
+                  if (error) {
+                    toast(error.message);
+                  } else {
+                    toast('Follower count updated');
+                    refetch();
+                    setFollowersOpen(false);
+                  }
+                }}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="glass-panel p-6">
         {/* Search and Filters */}
@@ -163,6 +211,16 @@ export function ArtistsPage() {
                         <DropdownMenuItem className="text-dark-primary hover:bg-dark-hover">
                           View Analytics
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-dark-primary hover:bg-dark-hover"
+                          onClick={() => {
+                            setSelectedArtist(artist);
+                            setSimFollowers(artist.followers_count || 0);
+                            setFollowersOpen(true);
+                          }}
+                        >
+                          Simulate Followers
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -179,7 +237,7 @@ export function ArtistsPage() {
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-1">
                       <Users className="w-4 h-4 text-dark-secondary mr-1" />
-                      <span className="font-bold">{artist.followers_count}</span>
+                      <span className="font-bold">{artist.followers_count ?? 0}</span>
                     </div>
                     <p className="text-xs text-dark-secondary">Followers</p>
                   </div>

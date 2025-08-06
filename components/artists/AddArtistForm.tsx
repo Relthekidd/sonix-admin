@@ -16,6 +16,7 @@ export function AddArtistForm({ onSuccess }: { onSuccess?: () => void }) {
   const [genres, setGenres] = useState('')
   const [isFeatured, setIsFeatured] = useState(false)
   const [isVerified, setIsVerified] = useState(true)
+  const [followersCount, setFollowersCount] = useState(0)
   const [message, setMessage] = useState('')
   const [pending, startTransition] = useTransition()
 
@@ -96,6 +97,7 @@ export function AddArtistForm({ onSuccess }: { onSuccess?: () => void }) {
             .filter(Boolean),
           is_featured: isFeatured,
           is_verified: isVerified,
+          followers_count: followersCount,
         }
 
         const res = await uploadArtistAction(payload)
@@ -107,6 +109,7 @@ export function AddArtistForm({ onSuccess }: { onSuccess?: () => void }) {
           setProfilePictureUrl('')
           setImageUrl('')
           setGenres('')
+          setFollowersCount(0)
           setIsFeatured(false)
           setIsVerified(true)
           onSuccess?.()
@@ -153,6 +156,20 @@ export function AddArtistForm({ onSuccess }: { onSuccess?: () => void }) {
             id="genres"
             value={genres}
             onChange={e => setGenres(e.target.value)}
+            className="h-12 px-4 text-lg"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <label htmlFor="followersCount" className="text-lg font-medium">
+            Follower Count (simulate)
+          </label>
+          <Input
+            id="followersCount"
+            type="number"
+            min="0"
+            value={followersCount}
+            onChange={e => setFollowersCount(Number(e.target.value))}
             className="h-12 px-4 text-lg"
           />
         </div>
