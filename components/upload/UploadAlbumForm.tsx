@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAlbumUpload } from './useAlbumUpload'
 import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
+import { logError } from '../../utils/logger'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { GlassCard } from '../common/GlassCard'
@@ -77,12 +78,18 @@ export default function UploadAlbumForm() {
       if (t.file) fd.append(`trackFile${idx}`, t.file)
     })
 
-    const res = await uploadAlbum(fd)
-    if (res.success) {
-      toast('Album uploaded successfully')
-      reset()
-    } else {
-      toast(res.message || 'Upload failed')
+    try {
+      const res = await uploadAlbum(fd)
+      if (res.success) {
+        toast('Album uploaded successfully')
+        reset()
+      } else {
+        logError('Album upload failed', res.message)
+        toast(res.message || 'Upload failed')
+      }
+    } catch (err: any) {
+      logError('Album upload error', err)
+      toast(err.message || 'Upload failed')
     }
   }
 

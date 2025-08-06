@@ -4,6 +4,7 @@ import { supabaseBrowser } from '../../utils/supabase/supabaseClient'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { GlassCard } from '../common/GlassCard'
+import { logError } from '../../utils/logger'
 
 export function AddArtistForm() {
   // Form state
@@ -18,72 +19,92 @@ export function AddArtistForm() {
 
   // Upload helper: uploads file to Supabase and returns public URL
   const handleUpload = async (file: File, path: string) => {
-    const fileExt = file.name.split('.').pop()!
-    const fileName = `${path}/${Date.now()}.${fileExt}`
-    const { data: uploadData, error } = await supabaseBrowser()
-      .storage
-      .from('artists')
-      .upload(fileName, file)
+    try {
+      const fileExt = file.name.split('.').pop()!
+      const fileName = `${path}/${Date.now()}.${fileExt}`
+      const { data: uploadData, error } = await supabaseBrowser()
+        .storage
+        .from('artists')
+        .upload(fileName, file)
 
-    if (error || !uploadData) {
-      console.error('Upload error:', error)
-      return ''
+      if (error || !uploadData) {
+        throw error || new Error('No data returned')
+      }
+
+      const {
+        data: { publicUrl }
+      } = supabaseBrowser()
+        .storage
+        .from('artists')
+        .getPublicUrl(uploadData.path)
+
+      return publicUrl
+    } catch (err) {
+      logError(`Upload error for ${path}`, err)
+      throw err
     }
-
-    // supabase getPublicUrl returns { data: { publicUrl: string } }
-    const {
-      data: { publicUrl }
-    } = supabaseBrowser()
-      .storage
-      .from('artists')
-      .getPublicUrl(uploadData.path)
-
-    return publicUrl
   }
 
   // Handlers for file inputs
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return
-    const url = await handleUpload(e.target.files[0], 'avatars')
-    setAvatarUrl(url)
+    try {
+      const url = await handleUpload(e.target.files[0], 'avatars')
+      setAvatarUrl(url)
+    } catch (err) {
+      setMessage('Failed to upload avatar')
+    }
   }
 
   const onProfilePicChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return
-    const url = await handleUpload(e.target.files[0], 'profile_pictures')
-    setProfilePictureUrl(url)
+    try {
+      const url = await handleUpload(e.target.files[0], 'profile_pictures')
+      setProfilePictureUrl(url)
+    } catch (err) {
+      setMessage('Failed to upload profile picture')
+    }
   }
 
   const onBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return
-    const url = await handleUpload(e.target.files[0], 'banners')
-    setImageUrl(url)
+    try {
+      const url = await handleUpload(e.target.files[0], 'banners')
+      setImageUrl(url)
+    } catch (err) {
+      setMessage('Failed to upload banner image')
+    }
   }
 
   // Form submission
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     startTransition(async () => {
-      const payload = {
-        name,
-        bio,
-        avatar_url: avatarUrl,
-        profile_picture_url: profilePictureUrl,
-        image_url: imageUrl,
-        status,
-      }
+      try {
+        const payload = {
+          name,
+          bio,
+          avatar_url: avatarUrl,
+          profile_picture_url: profilePictureUrl,
+          image_url: imageUrl,
+          status,
+        }
 
-      const res = await uploadArtistAction(payload)
-      if (res.success) {
-        setMessage('Artist saved successfully')
-        // reset form
-        setName('')
-        setBio('')
-        setAvatarUrl('')
-        setProfilePictureUrl('')
-        setImageUrl('')
-        setStatus('verified')
-      } else {
+        const res = await uploadArtistAction(payload)
+        if (res.success) {
+          setMessage('Artist saved successfully')
+          setName('')
+          setBio('')
+          setAvatarUrl('')
+          setProfilePictureUrl('')
+          setImageUrl('')
+          setStatus('verified')
+        } else {
+          logError('Artist save failed', res.error)
+          setMessage('Failed to save artist')
+        }
+      } catch (err) {
+        logError('Artist save error', err)
         setMessage('Failed to save artist')
       }
     })
