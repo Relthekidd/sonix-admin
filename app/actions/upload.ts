@@ -135,6 +135,7 @@ export type UploadArtistPayload = {
   genres?: string[]
   is_featured?: boolean
   is_verified?: boolean
+  followers_count?: number
 }
 
 export async function uploadArtistAction(
