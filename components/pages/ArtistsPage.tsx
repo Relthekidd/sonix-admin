@@ -37,11 +37,12 @@ export function ArtistsPage() {
 
   const filteredArtists = (artists || []).filter(artist =>
     artist.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    artist.genre?.toLowerCase().includes(searchTerm.toLowerCase())
+    (artist.genres || [])
+      .some((g: string) => g.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const getStatusBadge = (status: string) => {
-    if (status === "verified") {
+  const getStatusBadge = (verified: boolean) => {
+    if (verified) {
       return (
         <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-600 text-white text-xs font-medium">
           <Star className="w-3 h-3" />
@@ -132,13 +133,20 @@ export function ArtistsPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-bold text-lg">{artist.name}</h3>
-                      <p className="text-dark-secondary font-medium">{artist.genre}</p>
+                      <h3 className="font-bold text-lg">
+                        {artist.name}
+                        {artist.is_featured && (
+                          <Star className="inline w-4 h-4 ml-1 text-yellow-400" />
+                        )}
+                      </h3>
+                      <p className="text-dark-secondary font-medium">
+                        {(artist.genres && artist.genres[0]) || ''}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    {getStatusBadge(artist.status)}
+                    {getStatusBadge(artist.is_verified)}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="p-2 hover:bg-dark-hover rounded-lg transition-colors">
@@ -171,7 +179,7 @@ export function ArtistsPage() {
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-1">
                       <Users className="w-4 h-4 text-dark-secondary mr-1" />
-                      <span className="font-bold">{artist.followers}</span>
+                      <span className="font-bold">{artist.followers_count}</span>
                     </div>
                     <p className="text-xs text-dark-secondary">Followers</p>
                   </div>

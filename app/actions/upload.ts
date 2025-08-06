@@ -126,12 +126,15 @@ export async function uploadSingleAction(
  * Inserts a new artist record, using current user as creator.
  */
 export type UploadArtistPayload = {
+  id: string
   name: string
   bio?: string
   avatar_url?: string
   profile_picture_url?: string
   image_url?: string
-  status?: string
+  genres?: string[]
+  is_featured?: boolean
+  is_verified?: boolean
 }
 
 export async function uploadArtistAction(

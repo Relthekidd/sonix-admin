@@ -6,14 +6,16 @@ import { Textarea } from '../ui/textarea'
 import { GlassCard } from '../common/GlassCard'
 import { logError } from '../../utils/logger'
 
-export function AddArtistForm() {
+export function AddArtistForm({ onSuccess }: { onSuccess?: () => void }) {
   // Form state
   const [name, setName] = useState('')
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [profilePictureUrl, setProfilePictureUrl] = useState('')
   const [imageUrl, setImageUrl] = useState('')
-  const [status, setStatus] = useState('verified')
+  const [genres, setGenres] = useState('')
+  const [isFeatured, setIsFeatured] = useState(false)
+  const [isVerified, setIsVerified] = useState(true)
   const [message, setMessage] = useState('')
   const [pending, startTransition] = useTransition()
 
@@ -82,12 +84,18 @@ export function AddArtistForm() {
     startTransition(async () => {
       try {
         const payload = {
+          id: crypto.randomUUID(),
           name,
           bio,
           avatar_url: avatarUrl,
           profile_picture_url: profilePictureUrl,
           image_url: imageUrl,
-          status,
+          genres: genres
+            .split(',')
+            .map(g => g.trim())
+            .filter(Boolean),
+          is_featured: isFeatured,
+          is_verified: isVerified,
         }
 
         const res = await uploadArtistAction(payload)
@@ -98,7 +106,10 @@ export function AddArtistForm() {
           setAvatarUrl('')
           setProfilePictureUrl('')
           setImageUrl('')
-          setStatus('verified')
+          setGenres('')
+          setIsFeatured(false)
+          setIsVerified(true)
+          onSuccess?.()
         } else {
           logError('Artist save failed', res.error)
           setMessage('Failed to save artist')
@@ -137,6 +148,16 @@ export function AddArtistForm() {
         </div>
 
         <div className="space-y-3">
+          <label htmlFor="genres" className="text-lg font-medium">Genres (comma separated)</label>
+          <Input
+            id="genres"
+            value={genres}
+            onChange={e => setGenres(e.target.value)}
+            className="h-12 px-4 text-lg"
+          />
+        </div>
+
+        <div className="space-y-3">
           <label htmlFor="avatar" className="text-lg font-medium">Avatar Image</label>
           <input
             id="avatar"
@@ -169,18 +190,25 @@ export function AddArtistForm() {
           />
         </div>
 
-        <div className="space-y-3">
-          <label htmlFor="status" className="text-lg font-medium">Status</label>
-          <select
-            id="status"
-            value={status}
-            onChange={e => setStatus(e.target.value)}
-            className="w-full px-4 py-3 text-lg text-white border rounded-md border-white/20 bg-white/10"
-          >
-            <option value="verified">Verified</option>
-            <option value="pending">Pending</option>
-            <option value="suspended">Suspended</option>
-          </select>
+        <div className="flex items-center space-x-4">
+          <label className="flex items-center gap-2 text-lg font-medium">
+            <input
+              type="checkbox"
+              checked={isVerified}
+              onChange={e => setIsVerified(e.target.checked)}
+              className="h-5 w-5"
+            />
+            Verified
+          </label>
+          <label className="flex items-center gap-2 text-lg font-medium">
+            <input
+              type="checkbox"
+              checked={isFeatured}
+              onChange={e => setIsFeatured(e.target.checked)}
+              className="h-5 w-5"
+            />
+            Featured
+          </label>
         </div>
 
         <button
