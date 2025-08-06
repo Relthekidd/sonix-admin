@@ -13,6 +13,7 @@ export default function UploadSingleForm() {
   const [title, setTitle] = useState('')
   const [artist, setArtist] = useState('')
   const [artists, setArtists] = useState<Array<{ id: string; name: string }>>([])
+  const [artistName, setArtistName] = useState('')
   const [cover, setCover] = useState<File | null>(null)
   const [audio, setAudio] = useState<File | null>(null)
   const [genre, setGenre] = useState('')
@@ -31,6 +32,27 @@ export default function UploadSingleForm() {
       .select('id,name')
       .then(({ data }) => setArtists(data || []))
   }, [])
+
+  useEffect(() => {
+    if (!artist) {
+      setArtistName('')
+      return
+    }
+    const match = artists.find(a => a.id === artist)
+    if (match) {
+      setArtistName(match.name)
+    } else {
+      supabaseBrowser()
+        .from('artists')
+        .select('name')
+        .eq('id', artist)
+        .single()
+        .then(({ data }) => setArtistName(data?.name || ''))
+    }
+  }, [artist, artists])
+
+  const isValidUuid = (id: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
 
   const handleAudio = (file: File) => {
     setAudio(file)
@@ -53,6 +75,18 @@ export default function UploadSingleForm() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!audio) return
+
+    if (!isValidUuid(artist)) {
+      toast('Invalid artist ID')
+      return
+    }
+    for (const id of featuredArtistIds) {
+      if (!isValidUuid(id)) {
+        toast('Invalid featured artist ID')
+        return
+      }
+    }
+
     const fd = new FormData()
     fd.append('title', title)
     fd.append('artist', artist)
@@ -109,6 +143,9 @@ export default function UploadSingleForm() {
           <datalist id="artists">
             {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </datalist>
+          {artistName && (
+            <p className="text-sm text-slate-400">Selected: {artistName}</p>
+          )}
         </div>
         <div className="space-y-3">
           <label htmlFor="audio" className="text-lg font-medium">Audio File</label>

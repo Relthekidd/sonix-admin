@@ -110,6 +110,7 @@ export async function uploadAlbumAction(formData: FormData): Promise<Result> {
         .from('tracks')
         .insert({
           title: meta.title,
+          artist_id: mainArtistId,
           lyrics: meta.lyrics ?? null,
           featured_artist_ids: featuredArtistIds,
           album_id: albumId,

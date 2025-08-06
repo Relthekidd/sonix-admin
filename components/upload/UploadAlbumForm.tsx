@@ -20,6 +20,7 @@ export default function UploadAlbumForm() {
   const [title, setTitle] = useState('')
   const [mainArtistId, setMainArtistId] = useState('')
   const [artists, setArtists] = useState<Array<{ id: string; name: string }>>([])
+  const [mainArtistName, setMainArtistName] = useState('')
   const [cover, setCover] = useState<File | null>(null)
   const [releaseDate, setReleaseDate] = useState('')
   const [featuredArtistIds, setFeaturedArtistIds] = useState<string[]>([])
@@ -31,6 +32,27 @@ export default function UploadAlbumForm() {
   useEffect(() => {
     supabaseBrowser().from('artists').select('id,name').then(({ data }) => setArtists(data || []))
   }, [])
+
+  useEffect(() => {
+    if (!mainArtistId) {
+      setMainArtistName('')
+      return
+    }
+    const match = artists.find(a => a.id === mainArtistId)
+    if (match) {
+      setMainArtistName(match.name)
+    } else {
+      supabaseBrowser()
+        .from('artists')
+        .select('name')
+        .eq('id', mainArtistId)
+        .single()
+        .then(({ data }) => setMainArtistName(data?.name || ''))
+    }
+  }, [mainArtistId, artists])
+
+  const isValidUuid = (id: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
 
   const handleTrackFile = (idx: number, file: File) => {
     setTracks(tracks => tracks.map((t, i) => i === idx ? { ...t, file } : t))
@@ -58,9 +80,28 @@ export default function UploadAlbumForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isValidUuid(mainArtistId)) {
+      toast('Invalid main artist ID')
+      return
+    }
+    for (const id of featuredArtistIds) {
+      if (!isValidUuid(id)) {
+        toast('Invalid featured artist ID')
+        return
+      }
+    }
+    for (const track of tracks) {
+      for (const id of track.featuredArtistIds) {
+        if (!isValidUuid(id)) {
+          toast('Invalid track featured artist ID')
+          return
+        }
+      }
+    }
+
     const fd = new FormData()
     fd.append('title', title)
-    fd.append('main_artist_id', mainArtistId)
+    fd.append('mainArtistId', mainArtistId)
     if (cover) fd.append('cover', cover)
     fd.append('releaseDate', releaseDate)
     fd.append('featuredArtists', JSON.stringify(featuredArtistIds))
@@ -118,6 +159,9 @@ export default function UploadAlbumForm() {
           <datalist id="album-artists">
             {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </datalist>
+          {mainArtistName && (
+            <p className="text-sm text-slate-400">Selected: {mainArtistName}</p>
+          )}
         </div>
         <div className="space-y-3">
           <label htmlFor="cover" className="text-lg font-medium">Cover</label>
